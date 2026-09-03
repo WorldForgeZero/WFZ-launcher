@@ -1,0 +1,4 @@
+json 3.12.0
+Upstream: nlohmann/json
+
+File: json.hpp
