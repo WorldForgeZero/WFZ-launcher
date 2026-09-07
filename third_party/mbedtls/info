@@ -1,8 +1,0 @@
-Mbed TLS 4.2.0
-Upstream: Mbed-TLS/mbedtls
-Linux: locally built linux_amd64 static release
-Build type: Release
-ENABLE_TESTING=Off
-ENABLE_PROGRAMS=Off
-USE_STATIC_MBEDTLS_LIBRARY=On
-USE_SHARED_MBEDTLS_LIBRARY=Off
