@@ -57,12 +57,8 @@ vcpkg_installed/
 Testing/
 .cache/
 
+# vsc
+.vscode/
+
 # Local launcher binary
 /wfz_launcher
-
-# Vendored third-party binaries
-!third_party/**/*.so
-!third_party/**/*.so.*
-!third_party/**/*.dll
-!third_party/**/*.a
-!third_party/**/*.lib
