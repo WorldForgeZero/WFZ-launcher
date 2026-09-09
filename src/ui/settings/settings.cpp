@@ -18,20 +18,43 @@
 static WFZLauncherSettings g_settings{};
 
 static WFZSettingEntry g_news_entries[]{
-    {"Новости лаунчера", "Получать новости и обновления лаунчера",
+    {"Новости лаунчера",
+     "Получать новости и обновления лаунчера",
      WFZSettingType::Checkbox,
      &g_settings.load_launcher_news},
-    {"Новости игры", "Получать новости World Forge Zero",
+
+    {"Новости игры",
+     "Получать новости World Forge Zero",
      WFZSettingType::Checkbox,
      &g_settings.load_game_news}};
 
 static WFZSettingEntry g_behavior_entries[]{
-    {"Запуск после обновления", "Сразу запускать игру после завершения обновления",
+    {"Запуск после обновления",
+     "Сразу запускать игру после завершения обновления",
      WFZSettingType::Checkbox,
      &g_settings.launch_after_update},
-    {"Обновления лаунчера", "Проверять обновления лаунчера при запуске",
+
+    {"Обновления лаунчера",
+     "Проверять наличие обновлений лаунчера при запуске",
      WFZSettingType::Checkbox,
-     &g_settings.check_launcher_updates}};
+     &g_settings.check_launcher_updates},
+
+    {"Загружать баннеры",
+     "Загружать баннеры для фона лаунчера",
+     WFZSettingType::Checkbox,
+     &g_settings.load_banners}};
+
+static WFZSettingEntry g_etc[]{
+    {"Dev режим",
+     "Включает функции для разработки. Если вы не знаете, зачем он нужен - он вам не нужен.",
+     WFZSettingType::Checkbox,
+     &g_settings.dev_mode},
+
+    {"Admin режим",
+     "Отключает некоторые ограничения интерфейса лаунчера. Реальных прав не предоставляет.",
+     WFZSettingType::Checkbox,
+     &g_settings.admin_baypass},
+};
 
 static WFZSettingsSection g_sections[]{
     {"НОВОСТИ",
@@ -39,7 +62,10 @@ static WFZSettingsSection g_sections[]{
      std::size(g_news_entries)},
     {"ПОВЕДЕНИЕ",
      g_behavior_entries,
-     std::size(g_behavior_entries)}};
+     std::size(g_behavior_entries)},
+    {"РАСШИРЕННЫЕ",
+     g_etc,
+     std::size(g_etc)}};
 
 static int WFZToLowerCodepoint(int codepoint)
 {

@@ -14,6 +14,10 @@ struct WFZLauncherSettings
 
     bool launch_after_update = false;
     bool check_launcher_updates = true;
+    bool load_banners = true;
+
+    bool admin_baypass = false;
+    bool dev_mode = false;
 };
 
 struct WFZSettingEntry
