@@ -5,9 +5,9 @@
 
 #include "ui/cursor.h"
 
-#include "ui/main_menu/main_menu.h"
-
-#include "ui/settings/settings.h"
+#include "ui/info/info_menu.h"
+#include "ui/main/main_menu.h"
+#include "ui/settings/settings_menu.h"
 
 int main()
 {
@@ -40,6 +40,15 @@ int main()
 
         case WFZScreen::Settings:
             WFZDrawSettings(screen_width, screen_height, current_screen);
+            break;
+
+        case WFZScreen::Info:
+            WFZDrawInfo(screen_width, screen_height, current_screen);
+            break;
+
+        default:
+            // Сейфгард на случай если кто-то (я) идиот и не добавил обработчик
+            current_screen = WFZScreen::MainMenu;
             break;
         }
 
