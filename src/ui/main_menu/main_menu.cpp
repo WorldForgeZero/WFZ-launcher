@@ -7,10 +7,7 @@
 
 #include "../widgets/button.h"
 
-void WFZDrawMainMenu(
-    const float screen_width,
-    const float screen_height,
-    WFZScreen &current_screen)
+void WFZDrawMainMenu(const float screen_width, const float screen_height, WFZScreen &current_screen)
 {
     ClearBackground(wfz_color_background);
 
@@ -66,24 +63,9 @@ void WFZDrawMainMenu(
         news_width,
         top_height};
 
-    DrawRectangleRounded(
-        news_area,
-        0.12f,
-        6,
-        wfz_color_panel);
-
-    DrawRectangleRoundedLinesEx(
-        news_area,
-        0.12f,
-        6,
-        1.0f,
-        wfz_color_panel_border);
-
-    WFZDrawTextCentered(
-        "НОВОСТИ",
-        news_area,
-        18.0f,
-        wfz_color_text);
+    if (WFZButton("Новости", news_area, 18.0f, wfz_button_secondary))
+    {
+    }
 
     if (WFZButton("Настройки", settings_area, 18.0f, wfz_button_secondary))
     {
@@ -127,15 +109,7 @@ void WFZDrawMainMenu(
         320.0f,
         54.0f};
 
-    DrawRectangleRounded(
-        play_area,
-        0.12f,
-        6,
-        wfz_color_accent);
-
-    WFZDrawTextCentered(
-        "ИГРАТЬ",
-        play_area,
-        26.0f,
-        wfz_color_text_dark);
+    if (WFZButton("ИГРАТЬ", play_area, 26.0f, wfz_button_primary))
+    {
+    }
 }

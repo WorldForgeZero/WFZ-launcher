@@ -3,5 +3,7 @@
 enum class WFZScreen
 {
     MainMenu,
-    Settings
+    Settings,
+    News,
+    Info
 };
