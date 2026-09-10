@@ -19,7 +19,7 @@
     },
   
     "news": {
-        "launcher_url": "https://raw.githubusercontent.com/WorldForgeZero/WFZ-launcher/refs/heads/master/jsons/launcher_news.json",
-        "game_url": "https://raw.githubusercontent.com/WorldForgeZero/WFZ-Server/refs/heads/master/jsons/game_news.json" 
+        "launcher_url": "https://raw.githubusercontent.com/WorldForgeZero/WFZ-launcher/refs/heads/master/jsons/",
+        "game_url": "https://raw.githubusercontent.com/WorldForgeZero/WFZ-Server/refs/heads/master/jsons/" 
     }  
 }
