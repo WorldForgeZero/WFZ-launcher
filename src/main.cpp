@@ -9,6 +9,8 @@
 #include "ui/main/main_menu.h"
 #include "ui/settings/settings_menu.h"
 
+#include "network/thread_manager.h"
+
 int main()
 {
     constexpr int window_width = 800;
@@ -23,6 +25,7 @@ int main()
 
     WFZLoadFont();
 
+    ThreadManager::instance();
     WFZScreen current_screen = WFZScreen::MainMenu;
     while (!WindowShouldClose())
     {
@@ -57,8 +60,8 @@ int main()
     }
 
     WFZUnloadFont();
-
     CloseWindow();
+    ThreadManager::instance().shutdown();
 
     return 0;
 }
