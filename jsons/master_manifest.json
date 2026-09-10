@@ -19,8 +19,7 @@
     },
   
     "news": {
-        "docs": "Проблема почти аналогичная. По хорошему тут просто ссылки на нужные файлы. Ересь? Да. Мне похуй? Абсолютно",
-        "launcher_url": "https://иди_нахуй.com/вон_туда",
-        "game_url": "https://иди_нахуй.com/вон_туда"
+        "launcher_url": "https://raw.githubusercontent.com/WorldForgeZero/WFZ-launcher/refs/heads/master/jsons/launcher_news.json",
+        "game_url": "https://raw.githubusercontent.com/WorldForgeZero/WFZ-Server/refs/heads/master/jsons/game_news.json" 
     }  
 }
