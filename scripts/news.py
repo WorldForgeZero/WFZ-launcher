@@ -100,6 +100,28 @@ def parse_cl(pr_desc: str, pr_author: str) -> Change:
     return change
 
 
+def extend_unique(
+    target: list[list[str]],
+    author: str,
+    texts: list[str],
+) -> bool:
+    existing = {(entry[0], entry[1]) for entry in target}
+
+    changed = False
+
+    for text in texts:
+        item = (author, text)
+
+        if item in existing:
+            continue
+
+        target.append([author, text])
+        existing.add(item)
+        changed = True
+
+    return changed
+
+
 def dump_to_json(date: datetime, cl: list[Change]) -> None:
     if not cl:
         return
@@ -121,13 +143,29 @@ def dump_to_json(date: datetime, cl: list[Change]) -> None:
             "tweak": [],
         }
 
-        content.insert(0, day)
+        content.append(day)
+
+    changed = False
 
     for change in cl:
-        day["add"].extend([change.author, text] for text in change.add)
-        day["fix"].extend([change.author, text] for text in change.fix)
-        day["rm"].extend([change.author, text] for text in change.remove)
-        day["tweak"].extend([change.author, text] for text in change.tweak)
+        changed |= extend_unique(day["add"], change.author, change.add)
+        changed |= extend_unique(day["fix"], change.author, change.fix)
+        changed |= extend_unique(day["rm"], change.author, change.remove)
+        changed |= extend_unique(day["tweak"], change.author, change.tweak)
+
+    if not changed:
+        return
+
+    for entry in content:
+        entry["add"].sort(key=lambda item: item[0].casefold())
+        entry["fix"].sort(key=lambda item: item[0].casefold())
+        entry["rm"].sort(key=lambda item: item[0].casefold())
+        entry["tweak"].sort(key=lambda item: item[0].casefold())
+
+    content.sort(
+        key=lambda entry: entry.get("date", ""),
+        reverse=True,
+    )
 
     NEWS_CONTENT_JSON_FILE.write_text(
         json.dumps(content, ensure_ascii=False, indent=4) + "\n",
