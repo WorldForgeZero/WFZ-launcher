@@ -23,15 +23,23 @@ WIN_OPENSSL_ROOT := third_party/openssl/win64_mingw
 
 CPP_SOURCES := $(shell find $(SRC_DIR) -type f -name '*.cpp' -print)
 
-DEBUG_OBJS := $(patsubst %.cpp,$(BUILD_DIR)/debug/%.o,$(CPP_SOURCES))
-RELEASE_OBJS := $(patsubst %.cpp,$(BUILD_DIR)/release/%.o,$(CPP_SOURCES))
+DEBUG_OBJS := \
+	$(patsubst %.cpp,$(BUILD_DIR)/debug/%.o,$(CPP_SOURCES))
 
-WIN_DEBUG_OBJS := $(patsubst %.cpp,$(BUILD_DIR)/win-debug/%.o,$(CPP_SOURCES))
-WIN_RELEASE_OBJS := $(patsubst %.cpp,$(BUILD_DIR)/win-release/%.o,$(CPP_SOURCES))
+RELEASE_OBJS := \
+	$(patsubst %.cpp,$(BUILD_DIR)/release/%.o,$(CPP_SOURCES))
 
-RELEASE_FONT_OBJ := $(BUILD_DIR)/release/embedded/monocraft_font.o
-WIN_RELEASE_FONT_OBJ := $(BUILD_DIR)/win-release/embedded/monocraft_font.o
+WIN_DEBUG_OBJS := \
+	$(patsubst %.cpp,$(BUILD_DIR)/win-debug/%.o,$(CPP_SOURCES))
 
+WIN_RELEASE_OBJS := \
+	$(patsubst %.cpp,$(BUILD_DIR)/win-release/%.o,$(CPP_SOURCES))
+
+RELEASE_FONT_OBJ := \
+	$(BUILD_DIR)/release/embedded/monocraft_font.o
+
+WIN_RELEASE_FONT_OBJ := \
+	$(BUILD_DIR)/win-release/embedded/monocraft_font.o
 
 INCLUDES := \
 	-I$(SRC_DIR) \
@@ -44,7 +52,6 @@ WIN_INCLUDES := \
 	-I$(WIN_RAYLIB_ROOT)/include \
 	-I$(WIN_OPENSSL_ROOT)/include \
 	-Ithird_party
-
 
 COMMON_CXXFLAGS := \
 	-std=c++17 \
@@ -60,33 +67,33 @@ WIN_COMMON_CXXFLAGS := \
 	-DCPPHTTPLIB_OPENSSL_SUPPORT \
 	$(WIN_INCLUDES)
 
-
 DEBUG_CXXFLAGS := \
 	$(COMMON_CXXFLAGS) \
 	-g \
 	-O0
-
-RELEASE_CXXFLAGS := \
-	$(COMMON_CXXFLAGS) \
-	-DEMBEDED_FONT \
-	-g \
-	-O3 \
-	-flto \
-	-fno-omit-frame-pointer \
-	-DNDEBUG
 
 WIN_DEBUG_CXXFLAGS := \
 	$(WIN_COMMON_CXXFLAGS) \
 	-g \
 	-O0
 
+RELEASE_CXXFLAGS := \
+	$(COMMON_CXXFLAGS) \
+	-DEMBEDED_FONT \
+	-DNDEBUG \
+	-Os \
+	-flto \
+	-ffunction-sections \
+	-fdata-sections
+
 WIN_RELEASE_CXXFLAGS := \
 	$(WIN_COMMON_CXXFLAGS) \
 	-DEMBEDED_FONT \
-	-O3 \
+	-DNDEBUG \
+	-Os \
 	-flto \
-	-DNDEBUG
-
+	-ffunction-sections \
+	-fdata-sections
 
 BASE_LDFLAGS := \
 	$(RAYLIB_ROOT)/lib/libraylib.a \
@@ -114,11 +121,24 @@ WIN_BASE_LDFLAGS := \
 	-static-libgcc \
 	-static-libstdc++
 
-DEBUG_LDFLAGS := $(BASE_LDFLAGS)
-RELEASE_LDFLAGS := $(BASE_LDFLAGS) -flto
+DEBUG_LDFLAGS := \
+	$(BASE_LDFLAGS)
 
-WIN_DEBUG_LDFLAGS := $(WIN_BASE_LDFLAGS)
-WIN_RELEASE_LDFLAGS := $(WIN_BASE_LDFLAGS) -flto
+WIN_DEBUG_LDFLAGS := \
+	$(WIN_BASE_LDFLAGS)
+
+RELEASE_LDFLAGS := \
+	$(BASE_LDFLAGS) \
+	-flto \
+	-Wl,--gc-sections \
+	-s
+
+WIN_RELEASE_LDFLAGS := \
+	$(WIN_BASE_LDFLAGS) \
+	-flto \
+	-Wl,--gc-sections \
+	-s \
+	-mwindows
 
 
 .PHONY: \
@@ -141,24 +161,44 @@ all: debug
 
 clear: clean
 
-
+# Compilation
 $(BUILD_DIR)/debug/%.o: %.cpp
 	@mkdir -p $(@D)
-	$(CXX) $(DEBUG_CXXFLAGS) -MMD -MP -c $< -o $@
+	$(CXX) \
+		$(DEBUG_CXXFLAGS) \
+		-MMD \
+		-MP \
+		-c $< \
+		-o $@
 
 $(BUILD_DIR)/release/%.o: %.cpp
 	@mkdir -p $(@D)
-	$(CXX) $(RELEASE_CXXFLAGS) -MMD -MP -c $< -o $@
+	$(CXX) \
+		$(RELEASE_CXXFLAGS) \
+		-MMD \
+		-MP \
+		-c $< \
+		-o $@
 
 $(BUILD_DIR)/win-debug/%.o: %.cpp
 	@mkdir -p $(@D)
-	$(WIN_CXX) $(WIN_DEBUG_CXXFLAGS) -MMD -MP -c $< -o $@
+	$(WIN_CXX) \
+		$(WIN_DEBUG_CXXFLAGS) \
+		-MMD \
+		-MP \
+		-c $< \
+		-o $@
 
 $(BUILD_DIR)/win-release/%.o: %.cpp
 	@mkdir -p $(@D)
-	$(WIN_CXX) $(WIN_RELEASE_CXXFLAGS) -MMD -MP -c $< -o $@
+	$(WIN_CXX) \
+		$(WIN_RELEASE_CXXFLAGS) \
+		-MMD \
+		-MP \
+		-c $< \
+		-o $@
 
-
+# Embedded assets
 $(RELEASE_FONT_OBJ): $(FONT_FILE)
 	@mkdir -p $(@D)
 	$(LD) \
@@ -175,7 +215,7 @@ $(WIN_RELEASE_FONT_OBJ): $(FONT_FILE)
 		$(FONT_FILE) \
 		-o $@
 
-
+# Linking
 debug: $(DEBUG_OBJS)
 	$(CXX) \
 		$(DEBUG_OBJS) \
@@ -202,14 +242,14 @@ win-release: $(WIN_RELEASE_OBJS) $(WIN_RELEASE_FONT_OBJ)
 		$(WIN_RELEASE_LDFLAGS) \
 		-o $(WIN_TARGET)
 
-
+# Run
 run: debug
 	./$(TARGET)
 
 run-release: release
 	./$(TARGET)
 
-
+# Distribution
 DIST_MODE ?= debug
 
 dist: $(DIST_MODE)
@@ -226,21 +266,21 @@ dist-win: win-debug
 	@rm -rf $(DIST_DIR)
 	@mkdir -p $(DIST_DIR)
 	cp $(WIN_TARGET) $(DIST_DIR)/
-	@echo "Windows distribution built in $(DIST_DIR)/"
+	@echo "Windows distribution built in $(DIST_DIR)/ (mode: debug)"
 
 dist-win-release: win-release
 	@rm -rf $(DIST_DIR)
 	@mkdir -p $(DIST_DIR)
 	cp $(WIN_TARGET) $(DIST_DIR)/
-	@echo "Windows release distribution built in $(DIST_DIR)/"
+	@echo "Windows distribution built in $(DIST_DIR)/ (mode: release)"
 
-
+# Dependencies
 -include $(DEBUG_OBJS:.o=.d)
 -include $(RELEASE_OBJS:.o=.d)
 -include $(WIN_DEBUG_OBJS:.o=.d)
 -include $(WIN_RELEASE_OBJS:.o=.d)
 
-
+# Cleanup
 clean:
 	rm -f $(TARGET)
 	rm -f $(WIN_TARGET)
