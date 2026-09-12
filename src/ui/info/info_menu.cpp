@@ -24,7 +24,6 @@ namespace
 
     static constexpr WFZThirdPartyEntry g_third_party[]{
         {"raylib", "6.0", "zlib/libpng"},
-        {"SQLite", "3.53.4", "Public Domain"},
         {"OpenSSL", "3.5.8", "Apache-2.0"},
         {"cpp-httplib", "", "MIT"},
         {"nlohmann/json", "", "MIT"},
