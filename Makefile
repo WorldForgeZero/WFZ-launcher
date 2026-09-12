@@ -153,6 +153,7 @@ WIN_RELEASE_LDFLAGS := \
 	dist-release \
 	dist-win \
 	dist-win-release \
+	dist-release-all \
 	clean \
 	clear
 
@@ -273,6 +274,18 @@ dist-win-release: win-release
 	@mkdir -p $(DIST_DIR)
 	cp $(WIN_TARGET) $(DIST_DIR)/
 	@echo "Windows distribution built in $(DIST_DIR)/ (mode: release)"
+
+dist-release-all: release win-release
+	@rm -rf $(DIST_DIR)
+	@mkdir -p $(DIST_DIR)/linux
+	@mkdir -p $(DIST_DIR)/windows
+
+	cp $(TARGET) $(DIST_DIR)/linux/
+	cp $(WIN_TARGET) $(DIST_DIR)/windows/
+
+	@echo "All release distributions built:"
+	@echo "  Linux:   $(DIST_DIR)/linux/$(TARGET)"
+	@echo "  Windows: $(DIST_DIR)/windows/$(WIN_TARGET)"
 
 # Dependencies
 -include $(DEBUG_OBJS:.o=.d)
