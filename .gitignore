@@ -62,5 +62,6 @@ Testing/
 # vsc
 .vscode/
 
-# Local launcher binary
+# Local launcher
 /wfz_launcher
+WFZSource/

@@ -2,6 +2,17 @@
 
 #include <atomic>
 
+static float WFZClamp01(float value) // Это дубликат потом бы сделать надо бы рефактор
+{
+    if (value < 0.0f)
+        return 0.0f;
+
+    if (value > 1.0f)
+        return 1.0f;
+
+    return value;
+}
+
 namespace
 {
     std::atomic<float> g_progress{0.0f};
@@ -17,21 +28,18 @@ namespace wfz::loading_state
 {
     void SetProgress(float progress)
     {
-        if (progress < 0.0f)
-        {
-            progress = 0.0f;
-        }
-        else if (progress > 1.0f)
-        {
-            progress = 1.0f;
-        }
-
-        g_progress.store(progress, std::memory_order_relaxed);
+        g_progress.store(WFZClamp01(progress), std::memory_order_relaxed);
     }
 
     float GetProgress()
     {
         return g_progress.load(std::memory_order_relaxed);
+    }
+
+    void DeltaProgress(float delta)
+    {
+        const float current = g_progress.load(std::memory_order_relaxed);
+        g_progress.store(WFZClamp01(current + delta), std::memory_order_relaxed);
     }
 
     void SetStatus(const char *status)
@@ -56,21 +64,17 @@ namespace wfz::loading_state
 
     void SetDisplayProgress(float progress)
     {
-        if (progress < 0.0f)
-        {
-            progress = 0.0f;
-        }
-        else if (progress > 1.0f)
-        {
-            progress = 1.0f;
-        }
-
-        g_displayed_progress = progress;
+        g_displayed_progress = WFZClamp01(progress);
     }
 
     float GetDisplayProgress()
     {
         return g_displayed_progress;
+    }
+
+    void DeltaDisplayProgress(float delta)
+    {
+        g_displayed_progress = WFZClamp01(g_displayed_progress + delta);
     }
 
     void SetReadyTime(float time)

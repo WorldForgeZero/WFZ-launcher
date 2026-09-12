@@ -1,15 +1,16 @@
 #include <raylib.h>
 
+#include "ui/cursor.h"
 #include "ui/font.h"
 #include "ui/screen.h"
-
-#include "ui/cursor.h"
 
 #include "ui/info/info_menu.h"
 #include "ui/main/main_menu.h"
 #include "ui/settings/settings_menu.h"
 
 #include "network/thread_manager.h"
+
+#include "download/master.h"
 
 int main()
 {
@@ -26,6 +27,7 @@ int main()
     WFZLoadFont();
 
     ThreadManager::instance();
+    ThreadManager::instance().submit(DoMagic);
     WFZScreen current_screen = WFZScreen::MainMenu;
     while (!WindowShouldClose())
     {

@@ -11,7 +11,7 @@
 #include "../widgets/button.h"
 #include "../widgets/scroll_area.h"
 
-#include "../settings_data.h"
+#include "settings/version.h"
 
 namespace
 {
@@ -27,7 +27,7 @@ namespace
         {"OpenSSL", "3.5.8", "Apache-2.0"},
         {"cpp-httplib", "", "MIT"},
         {"nlohmann/json", "", "MIT"},
-        {"Monocraft", "", "OFL-1.1"}};
+        {"Monocraft", "4.2.1", "OFL-1.1"}};
 
     void WFZDrawInfoSectionTitle(const char *text, const float x, const float y)
     {

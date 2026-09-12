@@ -9,7 +9,7 @@
 
 #include "../widgets/button.h"
 
-#include "../settings_data.h"
+#include "settings/version.h"
 
 #include "network/thread_manager.h"
 

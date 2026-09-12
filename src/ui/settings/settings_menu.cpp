@@ -5,6 +5,8 @@
 
 #include <raylib.h>
 
+#include "../../settings/settings.h"
+
 #include "../font.h"
 #include "../theme.h"
 
@@ -13,56 +15,90 @@
 #include "../widgets/scroll_area.h"
 #include "../widgets/search_box.h"
 
-#include "../settings_data.h"
+enum class WFZSettingType
+{
+    Checkbox
+};
 
-static WFZLauncherSettings g_settings{};
+struct WFZSettingEntry
+{
+    const char *title;
+    const char *description;
+
+    WFZSettingType type;
+    WFZSettingId id;
+};
+
+struct WFZSettingsSection
+{
+    const char *title;
+
+    WFZSettingEntry *entries;
+    std::size_t entry_count;
+};
 
 static WFZSettingEntry g_news_entries[]{
-    {"Новости лаунчера",
-     "Получать новости и обновления лаунчера",
-     WFZSettingType::Checkbox,
-     &g_settings.load_launcher_news},
-
-    {"Новости игры",
-     "Получать новости World Forge Zero",
-     WFZSettingType::Checkbox,
-     &g_settings.load_game_news}};
+    {
+        "Новости лаунчера",
+        "Получать новости и обновления лаунчера",
+        WFZSettingType::Checkbox,
+        WFZSettingId::LoadLauncherNews,
+    },
+    {
+        "Новости игры",
+        "Получать новости World Forge Zero",
+        WFZSettingType::Checkbox,
+        WFZSettingId::LoadGameNews,
+    },
+};
 
 static WFZSettingEntry g_behavior_entries[]{
-    {"Запуск после обновления",
-     "Сразу запускать игру после завершения обновления",
-     WFZSettingType::Checkbox,
-     &g_settings.launch_after_update},
+    {
+        "Запуск после обновления",
+        "Сразу запускать игру после завершения обновления",
+        WFZSettingType::Checkbox,
+        WFZSettingId::LaunchAfterUpdate,
+    },
+    {
+        "Обновления лаунчера",
+        "Проверять наличие обновлений лаунчера при запуске",
+        WFZSettingType::Checkbox,
+        WFZSettingId::CheckLauncherUpdates,
+    },
+};
 
-    {"Обновления лаунчера",
-     "Проверять наличие обновлений лаунчера при запуске",
-     WFZSettingType::Checkbox,
-     &g_settings.check_launcher_updates}};
-
-static WFZSettingEntry g_etc[]{
-    {"Dev режим",
-     "Включает функции для разработки. Если вы не знаете, зачем он нужен - он вам не нужен.",
-     WFZSettingType::Checkbox,
-     &g_settings.dev_mode},
-
-    {"Admin режим",
-     "Отключает некоторые ограничения интерфейса лаунчера. Реальных прав не предоставляет.",
-     WFZSettingType::Checkbox,
-     &g_settings.admin_baypass},
+static WFZSettingEntry g_advanced_entries[]{
+    {
+        "Dev режим",
+        "Включает функции для разработки. Если вы не знаете, зачем он нужен - он вам не нужен.",
+        WFZSettingType::Checkbox,
+        WFZSettingId::DevMode,
+    },
+    {
+        "Admin режим",
+        "Отключает некоторые ограничения интерфейса лаунчера. Реальных прав не предоставляет.",
+        WFZSettingType::Checkbox,
+        WFZSettingId::AdminBypass,
+    },
 };
 
 static WFZSettingsSection g_sections[]{
-    {"НОВОСТИ",
-     g_news_entries,
-     std::size(g_news_entries)},
-
-    {"ПОВЕДЕНИЕ",
-     g_behavior_entries,
-     std::size(g_behavior_entries)},
-
-    {"РАСШИРЕННЫЕ",
-     g_etc,
-     std::size(g_etc)}};
+    {
+        "НОВОСТИ",
+        g_news_entries,
+        std::size(g_news_entries),
+    },
+    {
+        "ПОВЕДЕНИЕ",
+        g_behavior_entries,
+        std::size(g_behavior_entries),
+    },
+    {
+        "РАСШИРЕННЫЕ",
+        g_advanced_entries,
+        std::size(g_advanced_entries),
+    },
+};
 
 static int WFZToLowerCodepoint(int codepoint)
 {
@@ -110,9 +146,7 @@ static bool WFZSettingMatchesSearch(const WFZSettingEntry &entry, const std::str
         return true;
 
     const std::string lowered_query = WFZLowerString(query.c_str());
-
     const std::string title = WFZLowerString(entry.title);
-
     const std::string description = WFZLowerString(entry.description);
 
     return title.find(lowered_query) != std::string::npos ||
@@ -135,23 +169,38 @@ static float WFZMeasureSettingEntryHeight(const WFZSettingEntry &entry, const fl
     case WFZSettingType::Checkbox:
     {
         constexpr float horizontal_padding = 16.0f;
+
         constexpr float title_size = 22.0f;
+
         constexpr float description_size = 17.0f;
         constexpr float description_line_gap = 5.0f;
+
         constexpr float title_description_gap = 12.0f;
+
         constexpr float top_padding = 14.0f;
         constexpr float bottom_padding = 14.0f;
+
         constexpr float box_size = 24.0f;
         constexpr float box_margin = 14.0f;
+
         const float description_width =
             width -
             horizontal_padding * 2.0f -
             box_size -
             box_margin;
 
-        const float description_height = WFZMeasureTextWrappedHeight(entry.description, description_width, description_size, description_line_gap);
+        const float description_height =
+            WFZMeasureTextWrappedHeight(
+                entry.description,
+                description_width,
+                description_size,
+                description_line_gap);
 
-        return top_padding + title_size + title_description_gap + description_height + bottom_padding;
+        return top_padding +
+               title_size +
+               title_description_gap +
+               description_height +
+               bottom_padding;
     }
     }
 
@@ -163,12 +212,14 @@ static float WFZMeasureSectionHeight(const WFZSettingsSection &section, const st
     constexpr float header_height = 62.0f;
     constexpr float row_gap = 10.0f;
     constexpr float bottom_padding = 12.0f;
+
     float height = header_height;
     bool first = true;
 
     for (std::size_t i = 0; i < section.entry_count; ++i)
     {
         const WFZSettingEntry &entry = section.entries[i];
+
         if (!WFZSettingMatchesSearch(entry, query))
             continue;
 
@@ -176,6 +227,7 @@ static float WFZMeasureSectionHeight(const WFZSettingsSection &section, const st
             height += row_gap;
 
         height += WFZMeasureSettingEntryHeight(entry, width - 20.0f);
+
         first = false;
     }
 
@@ -252,8 +304,10 @@ void WFZDrawSettings(const float screen_width, const float screen_height, WFZScr
     constexpr float header_height = 140.0f;
     constexpr float footer_height = 74.0f;
     constexpr float footer_fade_height = 36.0f;
+
     constexpr float scrollbar_gap = 14.0f;
     constexpr float scrollbar_width = 4.0f;
+
     constexpr float panel_gap = 18.0f;
 
     ClearBackground(wfz_color_background);
@@ -270,7 +324,8 @@ void WFZDrawSettings(const float screen_width, const float screen_height, WFZScr
         left,
         72.0f,
         screen_width - left - right,
-        44.0f};
+        44.0f,
+    };
 
     WFZSearchBox(search_bounds, search_query);
 
@@ -290,8 +345,11 @@ void WFZDrawSettings(const float screen_width, const float screen_height, WFZScr
         scrollbar_width;
 
     const float content_top = header_height;
+
     const float content_bottom = screen_height - footer_height;
+
     const float content_view_height = content_bottom - content_top;
+
     float content_height = 16.0f;
 
     bool any_matches = false;
@@ -319,12 +377,15 @@ void WFZDrawSettings(const float screen_width, const float screen_height, WFZScr
     content_height += 16.0f;
 
     WFZScrollArea scroll{
-        {left,
-         content_top,
-         content_width,
-         content_view_height},
+        {
+            left,
+            content_top,
+            content_width,
+            content_view_height,
+        },
         content_height,
-        scroll_offset};
+        scroll_offset,
+    };
 
     WFZUpdateScrollArea(scroll);
 
@@ -346,22 +407,31 @@ void WFZDrawSettings(const float screen_width, const float screen_height, WFZScr
     }
     else
     {
-        for (const WFZSettingsSection &section : g_sections)
+        for (WFZSettingsSection &section : g_sections)
         {
             if (!WFZSectionHasMatches(section, search_query))
                 continue;
 
-            const float panel_height = WFZMeasureSectionHeight(section, search_query, content_width);
+            const float panel_height =
+                WFZMeasureSectionHeight(
+                    section,
+                    search_query,
+                    content_width);
 
             const Rectangle panel{
                 left,
                 y,
                 content_width,
-                panel_height};
+                panel_height,
+            };
 
-            WFZDrawSettingsPanel(panel, section.title);
+            WFZDrawSettingsPanel(
+                panel,
+                section.title);
 
-            float row_y = panel.y + 62.0f;
+            float row_y =
+                panel.y +
+                62.0f;
 
             bool first = true;
 
@@ -379,22 +449,32 @@ void WFZDrawSettings(const float screen_width, const float screen_height, WFZScr
                 {
                 case WFZSettingType::Checkbox:
                 {
+                    bool value = wfz::settings::GetBool(entry.id);
+
+                    const bool previous_value = value;
+
                     row_y +=
                         WFZCheckboxRow(
                             entry.title,
                             entry.description,
-                            {panel.x + 10.0f,
-                             row_y,
-                             panel.width - 20.0f,
-                             0.0f},
-                            *entry.bool_value);
+                            {
+                                panel.x + 10.0f,
+                                row_y,
+                                panel.width - 20.0f,
+                                0.0f,
+                            },
+                            value);
+
+                    if (value != previous_value)
+                    {
+                        wfz::settings::SetBool(entry.id, value);
+                    }
 
                     break;
                 }
                 }
 
-                first =
-                    false;
+                first = false;
             }
 
             y += panel.height + panel_gap;
@@ -410,13 +490,17 @@ void WFZDrawSettings(const float screen_width, const float screen_height, WFZScr
         scrollbar_width);
 
     // Footer.
-    const float footer_y = screen_height - footer_height;
+    const float footer_y =
+        screen_height -
+        footer_height;
 
     WFZDrawVerticalFade(
-        {0.0f,
-         footer_y - footer_fade_height,
-         screen_width,
-         footer_fade_height},
+        {
+            0.0f,
+            footer_y - footer_fade_height,
+            screen_width,
+            footer_fade_height,
+        },
         wfz_color_background,
         true);
 
@@ -434,7 +518,8 @@ void WFZDrawSettings(const float screen_width, const float screen_height, WFZScr
         screen_width - right - back_width,
         screen_height - 59.0f,
         back_width,
-        back_height};
+        back_height,
+    };
 
     if (WFZButton("НАЗАД", back_area, 20.0f, wfz_button_secondary))
     {
