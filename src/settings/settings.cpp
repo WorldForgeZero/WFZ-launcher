@@ -34,6 +34,9 @@ namespace
         case WFZSettingId::LaunchAfterUpdate:
             return settings.launch_after_update;
 
+        case WFZSettingId::LauncherAutoUpdate:
+            return settings.launcher_auto_update;
+
         case WFZSettingId::CheckLauncherUpdates:
             return settings.check_launcher_updates;
 
@@ -63,6 +66,10 @@ namespace
             settings.launch_after_update = value;
             break;
 
+        case WFZSettingId::LauncherAutoUpdate:
+            settings.launcher_auto_update = value;
+            break;
+
         case WFZSettingId::CheckLauncherUpdates:
             settings.check_launcher_updates = value;
             break;
@@ -85,6 +92,7 @@ namespace
 
             {"launch_after_update", settings.launch_after_update},
             {"check_launcher_updates", settings.check_launcher_updates},
+            {"launcher_auto_update", settings.launcher_auto_update},
 
             {"admin_bypass", settings.admin_bypass},
             {"dev_mode", settings.dev_mode},
@@ -106,6 +114,11 @@ namespace
         if (data.contains("launch_after_update"))
         {
             settings.launch_after_update = data.at("launch_after_update").get<bool>();
+        }
+
+        if (data.contains("launcher_auto_update"))
+        {
+            settings.launcher_auto_update = data.at("launcher_auto_update").get<bool>();
         }
 
         if (data.contains("check_launcher_updates"))

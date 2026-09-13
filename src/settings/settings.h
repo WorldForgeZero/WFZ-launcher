@@ -6,6 +6,7 @@ enum class WFZSettingId
     LoadGameNews,
 
     LaunchAfterUpdate,
+    LauncherAutoUpdate,
     CheckLauncherUpdates,
 
     AdminBypass,
@@ -18,6 +19,7 @@ struct WFZLauncherSettings
     bool load_game_news = true;
 
     bool launch_after_update = false;
+    bool launcher_auto_update = true;
     bool check_launcher_updates = true;
 
     bool admin_bypass = false;

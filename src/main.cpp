@@ -12,8 +12,16 @@
 
 #include "download/master.h"
 
-int main()
+#include "etc/self_update.h"
+#include "etc/skull.h"
+
+int main(int argc, char **argv)
 {
+    if (const auto result = wfz::self_update::HandleStartupArguments(argc, argv))
+    {
+        return *result;
+    }
+
     constexpr int window_width = 800;
     constexpr int window_height = 450;
 
@@ -29,7 +37,7 @@ int main()
     ThreadManager::instance();
     ThreadManager::instance().submit(DoMagic);
     WFZScreen current_screen = WFZScreen::MainMenu;
-    while (!WindowShouldClose())
+    while (!WindowShouldClose() && !wfz::app::ExitRequested())
     {
         WFZBeginCursorFrame();
         BeginDrawing();

@@ -65,6 +65,12 @@ static WFZSettingEntry g_behavior_entries[]{
         WFZSettingType::Checkbox,
         WFZSettingId::CheckLauncherUpdates,
     },
+    {
+        "Авто обновление лаунчера",
+        "Автоматически пытаться обновить лаунчер при доступной новой версии",
+        WFZSettingType::Checkbox,
+        WFZSettingId::LauncherAutoUpdate,
+    },
 };
 
 static WFZSettingEntry g_advanced_entries[]{

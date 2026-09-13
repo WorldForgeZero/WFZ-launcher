@@ -1,5 +1,7 @@
 #include "thread_manager.h"
 
+#include <raylib.h>
+
 ThreadManager &ThreadManager::instance()
 {
     static ThreadManager instance;
@@ -73,9 +75,13 @@ void ThreadManager::worker_loop()
         {
             task();
         }
+        catch (const std::exception &e)
+        {
+            TraceLog(LOG_ERROR, "ThreadManager task threw an exception: %s", e.what());
+        }
         catch (...)
         {
-            // надо бы логировать. Но как-то похуй =)
+            TraceLog(LOG_ERROR, "ThreadManager task threw an unknown exception");
         }
     }
 }

@@ -4,6 +4,7 @@
 
 namespace wfz::paths
 {
+    const std::filesystem::path &ExecutablePath();
     const std::filesystem::path &ExecutableDir();
     const std::filesystem::path &SourceDir();
 
