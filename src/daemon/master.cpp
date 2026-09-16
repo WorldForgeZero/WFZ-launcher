@@ -1,13 +1,12 @@
-#include "master.h"
-
 #include "network/download.h"
 #include "network/fetch.h"
+
+#include "app/exit_req.h"
 
 #include "ui/loading/loading_state.h"
 
 #include "etc/paths.h"
 #include "etc/self_update.h"
-#include "etc/skull.h"
 
 #include "settings/settings.h"
 #include "settings/version.h"
@@ -220,16 +219,6 @@ namespace
         return CompareVersions(ParseVersion(left), ParseVersion(right), prerelease_order);
     }
 
-    void SetUpDirs()
-    {
-        // Ересь
-        fs::create_directories(wfzp::TempDir());
-        fs::create_directories(wfzp::ConfigDir());
-        fs::create_directories(wfzp::GameDir());
-        fs::create_directories(wfzp::LauncherDir());
-        fs::create_directories(wfzp::LogsDir());
-    }
-
     fs::path GetUpdatePath()
     {
 #ifdef _WIN32
@@ -348,7 +337,7 @@ void DoMagic()
 {
     wfzl::SetStatus("Настройка директорий лаунчера...");
 
-    SetUpDirs();
+    // SetUpDirs();
 
     wfzl::SetStatus("Загрузка манифеста лаунчера...");
 

@@ -11,9 +11,9 @@
 
 #include "settings/version.h"
 
-#include "network/thread_manager.h"
-
 #include "main_menu_loading.h"
+
+namespace loading = wfz::loading_state;
 
 void WFZDrawMainMenu(const float screen_width, const float screen_height, WFZScreen &current_screen)
 {
@@ -121,9 +121,9 @@ void WFZDrawMainMenu(const float screen_width, const float screen_height, WFZScr
     // Status text alpha.
     float status_alpha = 1.0f;
 
-    if (wfz::loading_state::GetReady())
+    if (loading::GetReady())
     {
-        const float fade_t = WFZClamp01(wfz::loading_state::GetReadyTime() / status_fade_duration);
+        const float fade_t = WFZClamp01(loading::GetReadyTime() / status_fade_duration);
         status_alpha = 1.0f - fade_t;
     }
 
@@ -132,10 +132,11 @@ void WFZDrawMainMenu(const float screen_width, const float screen_height, WFZScr
     {
         Color status_color = wfz_color_text;
         status_color.a = static_cast<unsigned char>(static_cast<float>(status_color.a) * status_alpha);
-        WFZDrawText(wfz::loading_state::GetStatus(), left, bottom - progress_height - status_gap - status_size, status_size, status_color);
+        const std::string status = loading::GetStatus();
+        WFZDrawText(status.c_str(), left, bottom - progress_height - status_gap - status_size, status_size, status_color);
     }
 
-    if (!wfz::loading_state::GetReady())
+    if (!loading::GetReady())
     {
         const Rectangle progress_background{
             left,
@@ -151,7 +152,7 @@ void WFZDrawMainMenu(const float screen_width, const float screen_height, WFZScr
 
         Rectangle progress_value = progress_background;
 
-        progress_value.width = control_width * wfz::loading_state::GetDisplayProgress();
+        progress_value.width = control_width * loading::GetDisplayProgress();
 
         if (progress_value.width > 0.0f)
         {
@@ -164,7 +165,7 @@ void WFZDrawMainMenu(const float screen_width, const float screen_height, WFZScr
     }
     else
     {
-        const float morph_t = WFZEaseOutCubic(wfz::loading_state::GetReadyTime() / morph_duration);
+        const float morph_t = WFZEaseOutCubic(loading::GetReadyTime() / morph_duration);
 
         const float current_height = WFZLerp(progress_height, button_height, morph_t);
 

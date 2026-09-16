@@ -1,56 +1,160 @@
 #include "self_update.h"
 
+#include "paths.h"
+
 #include <chrono>
 #include <filesystem>
+#include <limits>
+#include <optional>
 #include <string>
-#include <string_view>
 #include <thread>
 #include <vector>
 
-#include "paths.h"
-
 #ifdef _WIN32
-#include <windows.h>
 
+// clang-format off
+#include <windows.h>
 #include <shellapi.h>
+// clang-format on
+
 #else
+
 #include <cerrno>
 #include <csignal>
 #include <sys/types.h>
 #include <unistd.h>
+
 #endif
 
 namespace fs = std::filesystem;
 
 namespace
 {
-    constexpr const char *APPLY_UPDATE_ARG = "--apply-self-update";
-
-    constexpr const char *CLEANUP_UPDATE_ARG = "--cleanup-self-update";
-
     constexpr int REPLACE_RETRY_COUNT = 100;
-
     constexpr auto REPLACE_RETRY_DELAY = std::chrono::milliseconds(100);
+
+#ifdef _WIN32
+
+    using ProcessId = DWORD;
+    using NativeString = std::wstring;
+
+    const NativeString APPLY_UPDATE_ARG = L"--apply-self-update";
+
+    const NativeString CLEANUP_UPDATE_ARG = L"--cleanup-self-update";
+
+#else
+
+    using ProcessId = pid_t;
+    using NativeString = std::string;
+
+    const NativeString APPLY_UPDATE_ARG = "--apply-self-update";
+
+    const NativeString CLEANUP_UPDATE_ARG = "--cleanup-self-update";
+
+#endif
+
+    enum class StartupMode
+    {
+        Normal,
+        ApplyUpdate,
+        CleanupUpdate,
+        Invalid
+    };
+
+    struct StartupRequest
+    {
+        StartupMode mode = StartupMode::Normal;
+
+        fs::path path;
+        ProcessId parent_pid = 0;
+    };
+
+    NativeString PathToNativeString(const fs::path &path)
+    {
+#ifdef _WIN32
+        return path.wstring();
+#else
+        return path.string();
+#endif
+    }
+
+    NativeString ProcessIdToNativeString(ProcessId process_id)
+    {
+#ifdef _WIN32
+        return std::to_wstring(process_id);
+#else
+        return std::to_string(static_cast<long long>(process_id));
+#endif
+    }
+
+    ProcessId CurrentProcessId()
+    {
+#ifdef _WIN32
+        return GetCurrentProcessId();
+#else
+        return getpid();
+#endif
+    }
+
+    std::optional<ProcessId> ParseProcessId(const NativeString &value)
+    {
+        try
+        {
+            std::size_t consumed = 0;
+
+            const unsigned long long parsed = std::stoull(value, &consumed);
+
+            if (consumed != value.size())
+                return std::nullopt;
+
+            if (parsed == 0)
+                return std::nullopt;
+
+            if (parsed > static_cast<unsigned long long>(std::numeric_limits<ProcessId>::max()))
+            {
+                return std::nullopt;
+            }
+
+            return static_cast<ProcessId>(parsed);
+        }
+        catch (...)
+        {
+            return std::nullopt;
+        }
+    }
+
+    bool CopyExecutable(const fs::path &source, const fs::path &target)
+    {
+        std::error_code ec;
+
+        fs::copy_file(source, target, fs::copy_options::overwrite_existing, ec);
+
+        if (ec)
+            return false;
+
+#ifndef _WIN32
+
+        const fs::perms permissions = fs::status(source, ec).permissions();
+
+        if (ec)
+            return false;
+
+        fs::permissions(target, permissions, fs::perm_options::replace, ec);
+
+        if (ec)
+            return false;
+
+#endif
+
+        return true;
+    }
 
     bool ReplaceExecutable(const fs::path &source, const fs::path &target)
     {
         for (int attempt = 0; attempt < REPLACE_RETRY_COUNT; ++attempt)
         {
-            std::error_code ec;
-
-            fs::copy_file(source, target, fs::copy_options::overwrite_existing, ec);
-
-            if (!ec)
+            if (CopyExecutable(source, target))
             {
-#ifndef _WIN32
-                const fs::perms permissions = fs::status(source, ec).permissions();
-
-                if (!ec)
-                {
-                    fs::permissions(target, permissions, fs::perm_options::replace, ec);
-                }
-#endif
-
                 return true;
             }
 
@@ -66,9 +170,6 @@ namespace
         {
             std::error_code ec;
 
-            if (!fs::exists(path, ec))
-                return;
-
             fs::remove(path, ec);
 
             if (!ec)
@@ -78,6 +179,28 @@ namespace
         }
     }
 
+    bool PrepareExecutable(const fs::path &path)
+    {
+#ifdef _WIN32
+
+        (void)path;
+        return true;
+
+#else
+
+        std::error_code ec;
+
+        fs::permissions(
+            path,
+            fs::perms::owner_exec | fs::perms::group_exec | fs::perms::others_exec,
+            fs::perm_options::add,
+            ec);
+
+        return !ec;
+
+#endif
+    }
+
 #ifdef _WIN32
 
     std::wstring QuoteWindowsArgument(const std::wstring &argument)
@@ -85,10 +208,10 @@ namespace
         if (argument.empty())
             return L"\"\"";
 
-        const bool needs_quotes = argument.find_first_of(L" \t\"") != std::wstring::npos;
-
-        if (!needs_quotes)
+        if (argument.find_first_of(L" \t\"") == std::wstring::npos)
+        {
             return argument;
+        }
 
         std::wstring result;
         result.push_back(L'"');
@@ -127,17 +250,20 @@ namespace
         return result;
     }
 
-    bool StartProcess(const fs::path &executable, const std::vector<std::wstring> &arguments)
+    bool StartProcess(const fs::path &executable, const std::vector<NativeString> &arguments)
     {
         std::wstring command_line = QuoteWindowsArgument(executable.wstring());
 
-        for (const std::wstring &argument : arguments)
+        for (const auto &argument : arguments)
         {
             command_line.push_back(L' ');
+
             command_line += QuoteWindowsArgument(argument);
         }
 
-        std::vector<wchar_t> command_buffer(command_line.begin(), command_line.end());
+        std::vector<wchar_t> command_buffer(
+            command_line.begin(),
+            command_line.end());
 
         command_buffer.push_back(L'\0');
 
@@ -146,7 +272,7 @@ namespace
 
         PROCESS_INFORMATION process_info{};
 
-        const BOOL result =
+        const BOOL created =
             CreateProcessW(
                 executable.c_str(),
                 command_buffer.data(),
@@ -159,7 +285,7 @@ namespace
                 &startup_info,
                 &process_info);
 
-        if (!result)
+        if (!created)
             return false;
 
         CloseHandle(process_info.hThread);
@@ -169,69 +295,53 @@ namespace
         return true;
     }
 
-    void WaitForProcess(const DWORD process_id)
+    void WaitForProcess(ProcessId process_id)
     {
-        HANDLE process = OpenProcess(SYNCHRONIZE, FALSE, process_id);
+        HANDLE process =
+            OpenProcess(
+                SYNCHRONIZE,
+                FALSE,
+                process_id);
 
         if (process == nullptr)
             return;
 
         WaitForSingleObject(process, INFINITE);
-
         CloseHandle(process);
     }
 
-    std::vector<std::wstring>
-    GetWindowsArguments()
+    std::vector<NativeString>
+    GetStartupArguments(int argc, char **argv)
     {
-        int argc = 0;
+        (void)argc;
+        (void)argv;
 
-        LPWSTR *argv = CommandLineToArgvW(GetCommandLineW(), &argc);
+        int argument_count = 0;
 
-        std::vector<std::wstring> result;
+        LPWSTR *arguments =
+            CommandLineToArgvW(
+                GetCommandLineW(),
+                &argument_count);
 
-        if (argv == nullptr)
-            return result;
+        if (arguments == nullptr)
+            return {};
 
-        result.reserve(static_cast<std::size_t>(argc));
+        std::vector<NativeString> result;
+        result.reserve(static_cast<std::size_t>(argument_count));
 
-        for (int i = 0; i < argc; ++i)
-            result.emplace_back(argv[i]);
+        for (int i = 0; i < argument_count; ++i)
+        {
+            result.emplace_back(arguments[i]);
+        }
 
-        LocalFree(argv);
+        LocalFree(arguments);
 
         return result;
     }
 
-    int ApplyUpdateWindows(const fs::path &target, const DWORD parent_pid)
-    {
-        WaitForProcess(parent_pid);
-
-        const fs::path updater = wfz::paths::ExecutablePath();
-
-        if (!ReplaceExecutable(updater, target))
-            return 1;
-
-        if (!StartProcess(
-                target,
-                {
-                    std::wstring(
-                        CLEANUP_UPDATE_ARG,
-                        CLEANUP_UPDATE_ARG +
-                            std::char_traits<char>::length(
-                                CLEANUP_UPDATE_ARG)),
-                    updater.wstring(),
-                }))
-        {
-            return 1;
-        }
-
-        return 0;
-    }
-
 #else
 
-    bool StartProcess(const fs::path &executable, const std::vector<std::string> &arguments)
+    bool StartProcess(const fs::path &executable, const std::vector<NativeString> &arguments)
     {
         const pid_t child = fork();
 
@@ -242,13 +352,16 @@ namespace
             return true;
 
         std::vector<std::string> storage;
+
         storage.reserve(arguments.size() + 1);
+
         storage.emplace_back(executable.string());
 
         for (const auto &argument : arguments)
             storage.push_back(argument);
 
         std::vector<char *> argv;
+
         argv.reserve(storage.size() + 1);
 
         for (std::string &argument : storage)
@@ -261,7 +374,7 @@ namespace
         _exit(127);
     }
 
-    void WaitForProcess(const pid_t process_id)
+    void WaitForProcess(ProcessId process_id)
     {
         while (true)
         {
@@ -282,11 +395,68 @@ namespace
             if (errno == ESRCH)
                 return;
 
-            std::this_thread::sleep_for(REPLACE_RETRY_DELAY);
+            return;
         }
     }
 
-    int ApplyUpdateLinux(const fs::path &target, const pid_t parent_pid)
+    std::vector<NativeString>
+    GetStartupArguments(int argc, char **argv)
+    {
+        std::vector<NativeString> result;
+
+        result.reserve(static_cast<std::size_t>(argc));
+
+        for (int i = 0; i < argc; ++i)
+        {
+            result.emplace_back(
+                argv[i] != nullptr
+                    ? argv[i]
+                    : "");
+        }
+
+        return result;
+    }
+
+#endif
+
+    StartupRequest ParseStartupRequest(int argc, char **argv)
+    {
+        const auto arguments = GetStartupArguments(argc, argv);
+
+        if (arguments.size() < 2)
+            return {};
+
+        if (arguments[1] == APPLY_UPDATE_ARG)
+        {
+            if (arguments.size() != 4)
+            {
+                return {StartupMode::Invalid, {}, 0};
+            }
+
+            const auto parent_pid = ParseProcessId(arguments[3]);
+
+            if (!parent_pid)
+            {
+                return {StartupMode::Invalid, {}, 0};
+            }
+
+            return {StartupMode::ApplyUpdate, fs::path(arguments[2]), *parent_pid};
+        }
+
+        if (arguments[1] == CLEANUP_UPDATE_ARG)
+        {
+            if (arguments.size() != 3)
+            {
+                return {StartupMode::Invalid, {}, 0};
+            }
+
+            return {StartupMode::CleanupUpdate, fs::path(arguments[2]), 0};
+        }
+
+        return {};
+    }
+
+    int ApplyUpdate(const fs::path &target, ProcessId parent_pid)
     {
         WaitForProcess(parent_pid);
 
@@ -301,7 +471,7 @@ namespace
                 target,
                 {
                     CLEANUP_UPDATE_ARG,
-                    updater.string(),
+                    PathToNativeString(updater),
                 }))
         {
             return 1;
@@ -309,133 +479,59 @@ namespace
 
         return 0;
     }
-
-#endif
 }
 
 namespace wfz::self_update
 {
     std::optional<int> HandleStartupArguments(int argc, char **argv)
     {
-#ifdef _WIN32
+        const StartupRequest request = ParseStartupRequest(argc, argv);
 
-        (void)argc;
-        (void)argv;
-
-        const auto arguments = GetWindowsArguments();
-
-        if (arguments.size() >= 2 &&
-            arguments[1] ==
-                L"--apply-self-update")
+        switch (request.mode)
         {
-            if (arguments.size() != 4)
-                return 1;
+        case StartupMode::Normal:
+            return std::nullopt;
 
-            const fs::path target = arguments[2];
+        case StartupMode::Invalid:
+            return 1;
 
-            DWORD parent_pid = 0;
+        case StartupMode::ApplyUpdate:
+            return ApplyUpdate(request.path, request.parent_pid);
 
-            try
-            {
-                parent_pid = static_cast<DWORD>(std::stoul(arguments[3]));
-            }
-            catch (...)
-            {
-                return 1;
-            }
-
-            return ApplyUpdateWindows(target, parent_pid);
-        }
-
-        if (arguments.size() >= 2 &&
-            arguments[1] ==
-                L"--cleanup-self-update")
-        {
-            if (arguments.size() >= 3)
-            {
-                RemoveFileBestEffort(fs::path(arguments[2]));
-            }
+        case StartupMode::CleanupUpdate:
+            RemoveFileBestEffort(request.path);
 
             return std::nullopt;
         }
 
-#else
-
-        if (argc >= 2 && std::string_view(argv[1]) == APPLY_UPDATE_ARG)
-        {
-            if (argc != 4)
-                return 1;
-
-            const fs::path target = argv[2];
-
-            pid_t parent_pid = 0;
-
-            try
-            {
-                parent_pid = static_cast<pid_t>(std::stol(argv[3]));
-            }
-            catch (...)
-            {
-                return 1;
-            }
-
-            return ApplyUpdateLinux(target, parent_pid);
-        }
-
-        if (argc >= 2 && std::string_view(argv[1]) == CLEANUP_UPDATE_ARG)
-        {
-            if (argc >= 3)
-            {
-                RemoveFileBestEffort(fs::path(argv[2]));
-            }
-
-            return std::nullopt;
-        }
-
-#endif
-
-        return std::nullopt;
+        return 1;
     }
 
     bool Begin(const fs::path &new_executable)
     {
         std::error_code ec;
 
-        if (!fs::exists(new_executable, ec))
+        if (!fs::exists(new_executable, ec) || ec)
         {
             return false;
         }
 
-#ifndef _WIN32
-
-        fs::permissions(new_executable,
-                        fs::perms::owner_exec | fs::perms::group_exec | fs::perms::others_exec, fs::perm_options::add,
-                        ec);
-
-        if (ec)
+        if (!fs::is_regular_file(new_executable, ec) || ec)
+        {
             return false;
+        }
 
-        const std::string parent_pid = std::to_string(static_cast<long long>(getpid()));
-
-        return StartProcess(new_executable,
-                            {
-                                APPLY_UPDATE_ARG,
-                                wfz::paths::ExecutablePath().string(),
-                                parent_pid,
-                            });
-
-#else
-
-        const std::wstring parent_pid = std::to_wstring(GetCurrentProcessId());
+        if (!PrepareExecutable(new_executable))
+        {
+            return false;
+        }
 
         return StartProcess(
             new_executable,
             {
-                L"--apply-self-update",
-                wfz::paths::ExecutablePath().wstring(),
-                parent_pid,
+                APPLY_UPDATE_ARG,
+                PathToNativeString(wfz::paths::ExecutablePath()),
+                ProcessIdToNativeString(CurrentProcessId()),
             });
-
-#endif
     }
 }

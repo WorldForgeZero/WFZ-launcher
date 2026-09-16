@@ -8,11 +8,11 @@ namespace wfz::app
 
     inline void RequestExit() noexcept
     {
-        exit_requested.store(            true,            std::memory_order_relaxed);
+        exit_requested.store(true, std::memory_order_relaxed);
     }
 
     inline bool ExitRequested() noexcept
     {
-        return exit_requested.load(            std::memory_order_relaxed);
+        return exit_requested.load(std::memory_order_relaxed);
     }
 }

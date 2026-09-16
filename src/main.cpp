@@ -1,5 +1,8 @@
 #include <raylib.h>
 
+#include "app/exit_req.h"
+#include "app/thread_manager.h"
+
 #include "ui/cursor.h"
 #include "ui/font.h"
 #include "ui/screen.h"
@@ -8,12 +11,11 @@
 #include "ui/main/main_menu.h"
 #include "ui/settings/settings_menu.h"
 
-#include "network/thread_manager.h"
-
-#include "download/master.h"
+#include "daemon/bootstrap.h"
 
 #include "etc/self_update.h"
-#include "etc/skull.h"
+
+namespace wfza = wfz::app;
 
 int main(int argc, char **argv)
 {
@@ -34,10 +36,9 @@ int main(int argc, char **argv)
 
     WFZLoadFont();
 
-    ThreadManager::instance();
-    ThreadManager::instance().submit(DoMagic);
+    wfza::ThreadManager::instance().submit(RunDaemonBootstrap);
     WFZScreen current_screen = WFZScreen::MainMenu;
-    while (!WindowShouldClose() && !wfz::app::ExitRequested())
+    while (!WindowShouldClose() && !wfza::ExitRequested())
     {
         WFZBeginCursorFrame();
         BeginDrawing();
@@ -59,6 +60,8 @@ int main(int argc, char **argv)
             WFZDrawInfo(screen_width, screen_height, current_screen);
             break;
 
+            // TODO: Сделать news скрин
+
         default:
             // Сейфгард на случай если кто-то (я) идиот и не добавил обработчик
             current_screen = WFZScreen::MainMenu;
@@ -71,7 +74,7 @@ int main(int argc, char **argv)
 
     WFZUnloadFont();
     CloseWindow();
-    ThreadManager::instance().shutdown();
+    wfza::ThreadManager::instance().shutdown();
 
     return 0;
 }

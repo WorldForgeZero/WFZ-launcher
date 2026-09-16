@@ -1,20 +1,22 @@
 #pragma once
 
+#include <string>
+
 namespace wfz::loading_state
 {
     void SetProgress(float progress);
     float GetProgress();
-    void DeltaProgress(float progress);
+    void DeltaProgress(float delta);
 
-    void SetStatus(const char *status);
-    const char *GetStatus();
+    void SetStatus(std::string status);
+    std::string GetStatus();
 
-    void SetReady(bool isReady);
+    void SetReady(bool is_ready);
     bool GetReady();
 
     void SetDisplayProgress(float progress);
     float GetDisplayProgress();
-    void DeltaDisplayProgress(float progress);
+    void DeltaDisplayProgress(float delta);
 
     void SetReadyTime(float time);
     float GetReadyTime();
