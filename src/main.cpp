@@ -13,6 +13,7 @@
 
 #include "daemon/bootstrap.h"
 
+#include "etc/logger.h"
 #include "etc/self_update.h"
 
 namespace wfza = wfz::app;
@@ -27,10 +28,10 @@ int main(int argc, char **argv)
     constexpr int window_width = 800;
     constexpr int window_height = 450;
 
-    SetConfigFlags(
-        FLAG_VSYNC_HINT |
-        FLAG_WINDOW_RESIZABLE);
+    wfz::logger::Init();
+    wfz::logger::DumpStartupInfo();
 
+    SetConfigFlags(FLAG_VSYNC_HINT | FLAG_WINDOW_RESIZABLE);
     InitWindow(window_width, window_height, "World Forge Zero");
     SetWindowMinSize(window_width, window_height);
 
@@ -72,9 +73,13 @@ int main(int argc, char **argv)
         WFZEndCursorFrame();
     }
 
+    wfza::RequestExit();
+
     WFZUnloadFont();
     CloseWindow();
+
     wfza::ThreadManager::instance().shutdown();
+    wfz::logger::Shutdown();
 
     return 0;
 }

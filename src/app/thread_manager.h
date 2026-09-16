@@ -25,12 +25,12 @@ namespace wfz::app
 
         void worker_loop();
 
-        std::thread worker_;
-
         std::mutex mutex_;
         std::condition_variable condition_;
         std::queue<std::function<void()>> tasks_;
 
         bool stopping_ = false;
+
+        std::thread worker_;
     };
 }

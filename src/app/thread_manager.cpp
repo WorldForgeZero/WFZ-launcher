@@ -11,8 +11,8 @@ namespace wfz::app
     }
 
     ThreadManager::ThreadManager()
-        : worker_(&ThreadManager::worker_loop, this)
     {
+        worker_ = std::thread(&ThreadManager::worker_loop, this);
     }
 
     ThreadManager::~ThreadManager()

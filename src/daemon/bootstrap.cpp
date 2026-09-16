@@ -6,6 +6,9 @@
 
 #include "etc/paths.h"
 
+#include "launcher/launcher_update.h"
+#include "manifest/manifest.h"
+
 namespace loading = wfz::loading_state;
 namespace paths = wfz::paths;
 
@@ -15,6 +18,8 @@ namespace
 {
     void SetUpDirs()
     {
+        loading::SetStatus("Инициализация...");
+
         // Ересь
         fs::create_directories(paths::TempDir());
         fs::create_directories(paths::ConfigDir());
@@ -26,7 +31,13 @@ namespace
 
 void RunDaemonBootstrap()
 {
-    loading::SetStatus("Инициализация...");
-
     SetUpDirs();
+
+    if (!DownloadManifest())
+        return;
+
+    if (!ProcessLauncherUpdate())
+        return;
+
+    loading::SetStatus("Увы это dev билд лаунчера. Он может только сам обновится и всё.");
 }
