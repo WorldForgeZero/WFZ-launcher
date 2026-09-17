@@ -5,6 +5,7 @@
 
 #include "ui/cursor.h"
 #include "ui/font.h"
+#include "ui/icon.h"
 #include "ui/screen.h"
 
 #include "ui/info/info_menu.h"
@@ -35,6 +36,7 @@ int main(int argc, char **argv)
     InitWindow(window_width, window_height, "World Forge Zero");
     SetWindowMinSize(window_width, window_height);
 
+    WFZSetWindowIcon();
     WFZLoadFont();
 
     wfza::ThreadManager::instance().submit(RunDaemonBootstrap);

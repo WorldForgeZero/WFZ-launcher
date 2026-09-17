@@ -6,7 +6,7 @@ static Font g_font{};
 
 static constexpr float wfz_font_spacing = 0.0f;
 
-#if defined(EMBEDED_FONT)
+#if defined(EMBEDDED_FONT)
 extern "C"
 {
     extern const unsigned char _binary_assets_fonts_Monocraft_ttf_start[];
@@ -28,7 +28,7 @@ void WFZLoadFont()
         "—–…«»„“”№©",
         &codepoint_count);
 
-#if defined(EMBEDED_FONT)
+#if defined(EMBEDDED_FONT)
     const int font_data_size = static_cast<int>(_binary_assets_fonts_Monocraft_ttf_end - _binary_assets_fonts_Monocraft_ttf_start);
 
     g_font = LoadFontFromMemory(

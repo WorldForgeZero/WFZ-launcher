@@ -6,6 +6,7 @@ WIN_CXX := x86_64-w64-mingw32-g++
 
 LD := ld
 WIN_LD := x86_64-w64-mingw32-ld
+WIN_WINDRES := x86_64-w64-mingw32-windres
 
 # Directories
 SRC_DIR := src
@@ -18,6 +19,8 @@ WIN_TARGET := wfz_launcher.exe
 
 # Assets
 FONT_FILE := assets/fonts/Monocraft.ttf
+ICON_PNG_FILE := assets/icon/icon.png
+ICON_ICO_FILE := assets/icon/icon.ico
 
 # Third-party dependencies
 RAYLIB_ROOT := third_party/raylib/linux_amd64
@@ -42,12 +45,29 @@ WIN_DEBUG_OBJS := \
 WIN_RELEASE_OBJS := \
 	$(patsubst %.cpp,$(BUILD_DIR)/win-release/%.o,$(CPP_SOURCES))
 
-# Embedded assets
+# Embedded Linux assets
 RELEASE_FONT_OBJ := \
 	$(BUILD_DIR)/release/embedded/monocraft_font.o
 
+RELEASE_ICON_OBJ := \
+	$(BUILD_DIR)/release/embedded/icon_png.o
+
+# Embedded Windows assets
 WIN_RELEASE_FONT_OBJ := \
 	$(BUILD_DIR)/win-release/embedded/monocraft_font.o
+
+WIN_RELEASE_ICON_OBJ := \
+	$(BUILD_DIR)/win-release/embedded/icon_png.o
+
+# Windows executable icon resource
+WIN_ICON_RC := \
+	$(BUILD_DIR)/windows/wfz_icon.rc
+
+WIN_DEBUG_EXE_ICON_OBJ := \
+	$(BUILD_DIR)/win-debug/embedded/wfz_exe_icon.o
+
+WIN_RELEASE_EXE_ICON_OBJ := \
+	$(BUILD_DIR)/win-release/embedded/wfz_exe_icon.o
 
 # Includes
 INCLUDES := \
@@ -93,7 +113,8 @@ WIN_DEBUG_CXXFLAGS := \
 # Release compiler flags
 RELEASE_CXXFLAGS := \
 	$(COMMON_CXXFLAGS) \
-	-DEMBEDED_FONT \
+	-DEMBEDDED_FONT \
+	-DEMBEDDED_ICON \
 	-DNDEBUG \
 	-O3 \
 	-flto=auto \
@@ -102,7 +123,8 @@ RELEASE_CXXFLAGS := \
 
 WIN_RELEASE_CXXFLAGS := \
 	$(WIN_COMMON_CXXFLAGS) \
-	-DEMBEDED_FONT \
+	-DEMBEDDED_FONT \
+	-DEMBEDDED_ICON \
 	-DNDEBUG \
 	-O3 \
 	-ffunction-sections \
@@ -219,7 +241,7 @@ $(BUILD_DIR)/win-release/%.o: %.cpp
 		-c $< \
 		-o $@
 
-# Embedded Linux assets
+# Embedded Linux font
 $(RELEASE_FONT_OBJ): $(FONT_FILE)
 	@mkdir -p $(@D)
 	$(LD) \
@@ -228,13 +250,52 @@ $(RELEASE_FONT_OBJ): $(FONT_FILE)
 		$(FONT_FILE) \
 		-o $@
 
-# Embedded Windows assets
+# Embedded Linux window icon
+$(RELEASE_ICON_OBJ): $(ICON_PNG_FILE)
+	@mkdir -p $(@D)
+	$(LD) \
+		-r \
+		-b binary \
+		$(ICON_PNG_FILE) \
+		-o $@
+
+# Embedded Windows font
 $(WIN_RELEASE_FONT_OBJ): $(FONT_FILE)
 	@mkdir -p $(@D)
 	$(WIN_LD) \
 		-r \
 		-b binary \
 		$(FONT_FILE) \
+		-o $@
+
+# Embedded Windows window icon
+$(WIN_RELEASE_ICON_OBJ): $(ICON_PNG_FILE)
+	@mkdir -p $(@D)
+	$(WIN_LD) \
+		-r \
+		-b binary \
+		$(ICON_PNG_FILE) \
+		-o $@
+
+# Generate Windows executable icon resource script
+$(WIN_ICON_RC): $(ICON_ICO_FILE)
+	@mkdir -p $(@D)
+	@printf 'IDI_WFZ_ICON ICON "%s"\n' "$(abspath $(ICON_ICO_FILE))" > $@
+
+# Windows debug executable icon resource
+$(WIN_DEBUG_EXE_ICON_OBJ): $(WIN_ICON_RC) $(ICON_ICO_FILE)
+	@mkdir -p $(@D)
+	$(WIN_WINDRES) \
+		-i $(WIN_ICON_RC) \
+		-O coff \
+		-o $@
+
+# Windows release executable icon resource
+$(WIN_RELEASE_EXE_ICON_OBJ): $(WIN_ICON_RC) $(ICON_ICO_FILE)
+	@mkdir -p $(@D)
+	$(WIN_WINDRES) \
+		-i $(WIN_ICON_RC) \
+		-O coff \
 		-o $@
 
 # Linux debug linking
@@ -245,25 +306,41 @@ debug: $(DEBUG_OBJS)
 		-o $(TARGET)
 
 # Linux release linking
-release: $(RELEASE_OBJS) $(RELEASE_FONT_OBJ)
+release: \
+	$(RELEASE_OBJS) \
+	$(RELEASE_FONT_OBJ) \
+	$(RELEASE_ICON_OBJ)
+
 	$(CXX) \
 		$(RELEASE_OBJS) \
 		$(RELEASE_FONT_OBJ) \
+		$(RELEASE_ICON_OBJ) \
 		$(RELEASE_LDFLAGS) \
 		-o $(TARGET)
 
 # Windows debug linking
-win-debug: $(WIN_DEBUG_OBJS)
+win-debug: \
+	$(WIN_DEBUG_OBJS) \
+	$(WIN_DEBUG_EXE_ICON_OBJ)
+
 	$(WIN_CXX) \
 		$(WIN_DEBUG_OBJS) \
+		$(WIN_DEBUG_EXE_ICON_OBJ) \
 		$(WIN_DEBUG_LDFLAGS) \
 		-o $(WIN_TARGET)
 
 # Windows release linking
-win-release: $(WIN_RELEASE_OBJS) $(WIN_RELEASE_FONT_OBJ)
+win-release: \
+	$(WIN_RELEASE_OBJS) \
+	$(WIN_RELEASE_FONT_OBJ) \
+	$(WIN_RELEASE_ICON_OBJ) \
+	$(WIN_RELEASE_EXE_ICON_OBJ)
+
 	$(WIN_CXX) \
 		$(WIN_RELEASE_OBJS) \
 		$(WIN_RELEASE_FONT_OBJ) \
+		$(WIN_RELEASE_ICON_OBJ) \
+		$(WIN_RELEASE_EXE_ICON_OBJ) \
 		$(WIN_RELEASE_LDFLAGS) \
 		-o $(WIN_TARGET)
 
