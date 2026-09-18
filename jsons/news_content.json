@@ -1,13 +1,34 @@
 [
     {
+        "date": "2026-09-18",
+        "add": [
+            [
+                "themanyfaceddemon",
+                "Добавлен экран новостей"
+            ]
+        ],
+        "fix": [
+            [
+                "themanyfaceddemon"
+            ]
+        ],
+        "rm": [
+            [
+                "themanyfaceddemon"
+            ]
+        ],
+        "tweak": [
+            [
+                "themanyfaceddemon"
+            ]
+        ]
+    },
+    {
         "date": "2026-09-17",
         "add": [
             [
                 "themanyfaceddemon",
-                "Добавлена поддержка app icon"
-            ],
-            [
-                "themanyfaceddemon",
+                "Добавлена поддержка app icon",
                 "Добавлена поддержка icon для бинарника для виндоус"
             ]
         ],
