@@ -8,6 +8,7 @@
 
 #include "launcher/launcher_update.h"
 #include "manifest/manifest.h"
+#include "news/news_update.h"
 
 namespace loading = wfz::loading_state;
 namespace paths = wfz::paths;
@@ -39,5 +40,8 @@ void RunDaemonBootstrap()
     if (!ProcessLauncherUpdate())
         return;
 
-    loading::SetStatus("Увы это dev билд лаунчера. Он может только сам обновится и всё.");
+
+    ProcessNewsUpdates();
+
+    loading::SetStatus("Увы это dev билд лаунчера. Он может только сам обновиться и всё.");
 }

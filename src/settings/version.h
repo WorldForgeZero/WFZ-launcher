@@ -2,7 +2,7 @@
 
 #include <string_view>
 
-inline constexpr const char *launcher_version = "0.0.0";
+inline constexpr const char *launcher_version = "0.0.1";
 
 // `< 0`: left is older
 // `= 0`: versions are equal

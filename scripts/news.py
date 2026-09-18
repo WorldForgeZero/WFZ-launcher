@@ -91,32 +91,86 @@ def parse_cl(pr_desc: str, pr_author: str) -> Change:
             case "fix":
                 change.fix.append(text)
 
-            case "remove" | "rm":
+            case "remove" | "rm" | "rem":
                 change.remove.append(text)
 
-            case "tweak":
+            case "tweak" | "tw":
                 change.tweak.append(text)
 
     return change
 
 
-def extend_unique(
-    target: list[list[str]],
-    author: str,
-    texts: list[str],
-) -> bool:
-    existing = {(entry[0], entry[1]) for entry in target}
+def normalize_category(entries: list[list[str]]) -> list[list[str]]:
+    """
+    Merge all entries belonging to the same author.
 
+    Old format:
+        ["Alice", "A"]
+        ["Alice", "B"]
+
+    New format:
+        ["Alice", "A", "B"]
+    """
+    authors: dict[str, list[str]] = {}
+
+    for entry in entries:
+        if not isinstance(entry, list) or len(entry) < 2:
+            continue
+
+        author = entry[0]
+
+        if not isinstance(author, str):
+            continue
+
+        author_entry = authors.setdefault(author, [])
+        existing = set(author_entry)
+
+        for text in entry[1:]:
+            if not isinstance(text, str):
+                continue
+
+            text = text.strip()
+
+            if not text or text in existing:
+                continue
+
+            author_entry.append(text)
+            existing.add(text)
+
+    return [[author, *texts] for author, texts in authors.items() if texts]
+
+
+def normalize_content(content: list[dict]) -> None:
+    for day in content:
+        for category in ("add", "fix", "rm", "tweak"):
+            entries = day.get(category)
+
+            if not isinstance(entries, list):
+                day[category] = []
+                continue
+
+            day[category] = normalize_category(entries)
+
+
+def extend_unique(target: list[list[str]], author: str, texts: list[str]) -> bool:
+    author_entry = next(
+        (entry for entry in target if entry and entry[0] == author),
+        None,
+    )
+
+    if author_entry is None:
+        author_entry = [author]
+        target.append(author_entry)
+
+    existing = set(author_entry[1:])
     changed = False
 
     for text in texts:
-        item = (author, text)
-
-        if item in existing:
+        if text in existing:
             continue
 
-        target.append([author, text])
-        existing.add(item)
+        author_entry.append(text)
+        existing.add(text)
         changed = True
 
     return changed
@@ -127,6 +181,9 @@ def dump_to_json(date: datetime, cl: list[Change]) -> None:
         return
 
     content = load_news_content()
+
+    normalize_content(content)
+
     str_date = date.strftime("%Y-%m-%d")
 
     day = next(
