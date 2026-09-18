@@ -10,9 +10,12 @@
 
 #include "ui/info/info_menu.h"
 #include "ui/main/main_menu.h"
+#include "ui/news/news_menu.h"
 #include "ui/settings/settings_menu.h"
 
 #include "daemon/bootstrap.h"
+
+#include "settings/settings.h"
 
 #include "etc/logger.h"
 #include "etc/self_update.h"
@@ -31,6 +34,7 @@ int main(int argc, char **argv)
 
     wfz::logger::Init();
     wfz::logger::DumpStartupInfo();
+    wfz::settings::Load();
 
     SetConfigFlags(FLAG_VSYNC_HINT | FLAG_WINDOW_RESIZABLE);
     InitWindow(window_width, window_height, "World Forge Zero");
@@ -63,7 +67,9 @@ int main(int argc, char **argv)
             WFZDrawInfo(screen_width, screen_height, current_screen);
             break;
 
-            // TODO: Сделать news скрин
+        case WFZScreen::News:
+            WFZDrawNews(screen_width, screen_height, current_screen);
+            break;
 
         default:
             // Сейфгард на случай если кто-то (я) идиот и не добавил обработчик
