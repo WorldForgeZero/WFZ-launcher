@@ -7,21 +7,9 @@
                 "Добавлен экран новостей"
             ]
         ],
-        "fix": [
-            [
-                "themanyfaceddemon"
-            ]
-        ],
-        "rm": [
-            [
-                "themanyfaceddemon"
-            ]
-        ],
-        "tweak": [
-            [
-                "themanyfaceddemon"
-            ]
-        ]
+        "fix": [],
+        "rm": [],
+        "tweak": []
     },
     {
         "date": "2026-09-17",

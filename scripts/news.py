@@ -9,6 +9,7 @@ from pathlib import Path
 # region constants
 FILE_PATH = Path(__file__).resolve()
 ROOT_DIR = FILE_PATH.parents[1]
+
 JSONS_DIR = ROOT_DIR / "jsons"
 JSONS_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -21,9 +22,13 @@ NEWS_CONTENT_JSON_FILE = JSONS_DIR / "news_content.json"
 @dataclass
 class Change:
     author: str
+
     add: list[str] = field(default_factory=list)
+
     fix: list[str] = field(default_factory=list)
+
     remove: list[str] = field(default_factory=list)
+
     tweak: list[str] = field(default_factory=list)
 
     def empty(self) -> bool:
@@ -33,20 +38,43 @@ class Change:
 # endregion
 
 
+# region loading
 def load_news_ver() -> int:
     if not NEWS_JSON_FILE.exists():
         return 0
 
-    return json.loads(NEWS_JSON_FILE.read_text(encoding="utf-8"))[0]
+    try:
+        data = json.loads(NEWS_JSON_FILE.read_text(encoding="utf-8"))
+
+        if not isinstance(data, list) or len(data) != 1 or not isinstance(data[0], int):
+            return 0
+
+        return data[0]
+
+    except (OSError, json.JSONDecodeError):
+        return 0
 
 
 def load_news_content() -> list[dict]:
     if not NEWS_CONTENT_JSON_FILE.exists():
         return []
 
-    return json.loads(NEWS_CONTENT_JSON_FILE.read_text(encoding="utf-8"))
+    try:
+        data = json.loads(NEWS_CONTENT_JSON_FILE.read_text(encoding="utf-8"))
+
+        if not isinstance(data, list):
+            return []
+
+        return data
+
+    except (OSError, json.JSONDecodeError):
+        return []
 
 
+# endregion
+
+
+# region changelog parsing
 def parse_cl(pr_desc: str, pr_author: str) -> Change:
     change = Change(author=pr_author)
 
@@ -65,11 +93,11 @@ def parse_cl(pr_desc: str, pr_author: str) -> Change:
         if not line:
             continue
 
+        if line.startswith("---"):
+            break
+
         if not line.startswith("-"):
             continue
-
-        if line.startswith("---"):
-            return change
 
         entry = line[1:].strip()
 
@@ -79,6 +107,7 @@ def parse_cl(pr_desc: str, pr_author: str) -> Change:
         kind, text = entry.split(":", 1)
 
         kind = kind.strip().lower()
+
         text = text.strip()
 
         if not text:
@@ -100,17 +129,11 @@ def parse_cl(pr_desc: str, pr_author: str) -> Change:
     return change
 
 
-def normalize_category(entries: list[list[str]]) -> list[list[str]]:
-    """
-    Merge all entries belonging to the same author.
+# endregion
 
-    Old format:
-        ["Alice", "A"]
-        ["Alice", "B"]
 
-    New format:
-        ["Alice", "A", "B"]
-    """
+# region normalization
+def normalize_category(entries: list) -> list[list[str]]:
     authors: dict[str, list[str]] = {}
 
     for entry in entries:
@@ -119,10 +142,13 @@ def normalize_category(entries: list[list[str]]) -> list[list[str]]:
 
         author = entry[0]
 
-        if not isinstance(author, str):
+        if not isinstance(author, str) or not author.strip():
             continue
 
+        author = author.strip()
+
         author_entry = authors.setdefault(author, [])
+
         existing = set(author_entry)
 
         for text in entry[1:]:
@@ -135,45 +161,159 @@ def normalize_category(entries: list[list[str]]) -> list[list[str]]:
                 continue
 
             author_entry.append(text)
+
             existing.add(text)
 
     return [[author, *texts] for author, texts in authors.items() if texts]
 
 
-def normalize_content(content: list[dict]) -> None:
+def normalize_content(content: list[dict]) -> bool:
+    changed = False
+
     for day in content:
+        if not isinstance(day, dict):
+            continue
+
         for category in ("add", "fix", "rm", "tweak"):
             entries = day.get(category)
 
             if not isinstance(entries, list):
                 day[category] = []
+                changed = True
                 continue
 
-            day[category] = normalize_category(entries)
+            normalized = normalize_category(entries)
+
+            if normalized != entries:
+                day[category] = normalized
+
+                changed = True
+
+    return changed
 
 
+# endregion
+
+
+# region modification
 def extend_unique(target: list[list[str]], author: str, texts: list[str]) -> bool:
+    if not texts:
+        return False
+
+    clean_texts: list[str] = []
+
+    for text in texts:
+        if not isinstance(text, str):
+            continue
+
+        text = text.strip()
+
+        if not text:
+            continue
+
+        clean_texts.append(text)
+
+    if not clean_texts:
+        return False
+
     author_entry = next(
-        (entry for entry in target if entry and entry[0] == author),
+        (
+            entry
+            for entry in target
+            if (isinstance(entry, list) and entry and entry[0] == author)
+        ),
         None,
     )
 
     if author_entry is None:
         author_entry = [author]
+
         target.append(author_entry)
 
     existing = set(author_entry[1:])
+
     changed = False
 
-    for text in texts:
+    for text in clean_texts:
         if text in existing:
             continue
 
         author_entry.append(text)
+
         existing.add(text)
+
         changed = True
 
     return changed
+
+
+# endregion
+
+
+# region sorting
+def sort_content(content: list[dict]) -> None:
+    for day in content:
+        if not isinstance(day, dict):
+            continue
+
+        for category in ("add", "fix", "rm", "tweak"):
+            entries = day.get(category)
+
+            if not isinstance(entries, list):
+                continue
+
+            entries.sort(
+                key=lambda item: (
+                    item[0].casefold()
+                    if (
+                        isinstance(item, list)
+                        and item
+                        and isinstance(
+                            item[0],
+                            str,
+                        )
+                    )
+                    else ""
+                )
+            )
+
+    content.sort(
+        key=lambda entry: (
+            entry.get(
+                "date",
+                "",
+            )
+            if isinstance(
+                entry,
+                dict,
+            )
+            else ""
+        ),
+        reverse=True,
+    )
+
+
+# endregion
+
+
+# region writing
+def write_news_content(content: list[dict]) -> None:
+    NEWS_CONTENT_JSON_FILE.write_text(
+        json.dumps(
+            content,
+            ensure_ascii=False,
+            indent=4,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+
+def write_news_ver(version: int) -> None:
+    NEWS_JSON_FILE.write_text(json.dumps([version]) + "\n", encoding="utf-8")
+
+
+# endregion
 
 
 def dump_to_json(date: datetime, cl: list[Change]) -> None:
@@ -182,12 +322,16 @@ def dump_to_json(date: datetime, cl: list[Change]) -> None:
 
     content = load_news_content()
 
-    normalize_content(content)
+    changed = normalize_content(content)
 
     str_date = date.strftime("%Y-%m-%d")
 
     day = next(
-        (entry for entry in content if entry.get("date") == str_date),
+        (
+            entry
+            for entry in content
+            if (isinstance(entry, dict) and entry.get("date") == str_date)
+        ),
         None,
     )
 
@@ -202,7 +346,13 @@ def dump_to_json(date: datetime, cl: list[Change]) -> None:
 
         content.append(day)
 
-    changed = False
+    for category in ("add", "fix", "rm", "tweak"):
+        if not isinstance(
+            day.get(category),
+            list,
+        ):
+            day[category] = []
+            changed = True
 
     for change in cl:
         changed |= extend_unique(day["add"], change.author, change.add)
@@ -213,28 +363,13 @@ def dump_to_json(date: datetime, cl: list[Change]) -> None:
     if not changed:
         return
 
-    for entry in content:
-        entry["add"].sort(key=lambda item: item[0].casefold())
-        entry["fix"].sort(key=lambda item: item[0].casefold())
-        entry["rm"].sort(key=lambda item: item[0].casefold())
-        entry["tweak"].sort(key=lambda item: item[0].casefold())
+    sort_content(content)
 
-    content.sort(
-        key=lambda entry: entry.get("date", ""),
-        reverse=True,
-    )
-
-    NEWS_CONTENT_JSON_FILE.write_text(
-        json.dumps(content, ensure_ascii=False, indent=4) + "\n",
-        encoding="utf-8",
-    )
+    write_news_content(content)
 
     manifest_ver = load_news_ver() + 1
 
-    NEWS_JSON_FILE.write_text(
-        json.dumps([manifest_ver]) + "\n",
-        encoding="utf-8",
-    )
+    write_news_ver(manifest_ver)
 
 
 def main(pr_desc: str, pr_author: str) -> None:
@@ -252,9 +387,11 @@ def main(pr_desc: str, pr_author: str) -> None:
 if __name__ == "__main__":
     if len(sys.argv) < 3:
         print(f"Usage: {sys.argv[0]} <author> <pr description file>")
+
         sys.exit(1)
 
     author = sys.argv[1]
+
     desc_file = Path(sys.argv[2])
 
     main(desc_file.read_text(encoding="utf-8"), author)
