@@ -127,6 +127,7 @@ WIN_RELEASE_CXXFLAGS := \
 	-DEMBEDDED_ICON \
 	-DNDEBUG \
 	-O3 \
+	-flto=auto \
 	-ffunction-sections \
 	-fdata-sections
 
@@ -175,6 +176,8 @@ RELEASE_LDFLAGS := \
 
 WIN_RELEASE_LDFLAGS := \
 	$(WIN_BASE_LDFLAGS) \
+	-O3 \
+	-flto=auto \
 	-Wl,--gc-sections \
 	-mwindows \
 	-s
@@ -377,15 +380,14 @@ dist-win-release: win-release
 
 dist-release-all: release win-release
 	@rm -rf $(DIST_DIR)
-	@mkdir -p $(DIST_DIR)/linux
-	@mkdir -p $(DIST_DIR)/windows
+	@mkdir -p $(DIST_DIR)
 
-	cp $(TARGET) $(DIST_DIR)/linux/
-	cp $(WIN_TARGET) $(DIST_DIR)/windows/
+	cp $(TARGET) $(DIST_DIR)/
+	cp $(WIN_TARGET) $(DIST_DIR)/
 
 	@echo "All release distributions built:"
-	@echo "  Linux:   $(DIST_DIR)/linux/$(TARGET)"
-	@echo "  Windows: $(DIST_DIR)/windows/$(WIN_TARGET)"
+	@echo "  Linux:   $(DIST_DIR)/$(TARGET)"
+	@echo "  Windows: $(DIST_DIR)/$(WIN_TARGET)"
 
 # Dependencies
 -include $(DEBUG_OBJS:.o=.d)

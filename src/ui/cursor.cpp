@@ -20,7 +20,7 @@ void WFZEndCursorFrame()
     if (g_pointer_requested == g_pointer_active)
         return;
 
-    SetMouseCursor(        g_pointer_requested            ? MOUSE_CURSOR_POINTING_HAND            : MOUSE_CURSOR_DEFAULT);
+    SetMouseCursor(g_pointer_requested ? MOUSE_CURSOR_POINTING_HAND : MOUSE_CURSOR_DEFAULT);
 
     g_pointer_active = g_pointer_requested;
 }
