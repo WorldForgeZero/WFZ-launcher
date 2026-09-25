@@ -1,6 +1,8 @@
 #include "thread_manager.h"
 
-#include <raylib.h>
+#include "etc/logger.h"
+
+namespace logger = wfz::logger;
 
 namespace wfz::app
 {
@@ -79,11 +81,11 @@ namespace wfz::app
             }
             catch (const std::exception &e)
             {
-                TraceLog(LOG_ERROR, "ThreadManager task threw an exception: %s", e.what());
+                logger::Error("ThreadManager task threw an exception: %s", e.what());
             }
             catch (...)
             {
-                TraceLog(LOG_ERROR, "ThreadManager task threw an unknown exception");
+                logger::Error("ThreadManager task threw an unknown exception");
             }
         }
     }
