@@ -8,15 +8,14 @@
 #include <thread>
 
 #include <nlohmann/json.hpp>
-#include <raylib.h>
 
 #include "app/exit_req.h"
+#include "app/loading_state.h"
 
+#include "etc/logger.h"
 #include "etc/paths.h"
 
 #include "network/download.h"
-
-#include "ui/loading/loading_state.h"
 
 namespace fs = std::filesystem;
 
@@ -24,6 +23,7 @@ namespace app = wfz::app;
 namespace loading = wfz::loading_state;
 namespace network = wfz::network;
 namespace paths = wfz::paths;
+namespace logger = wfz::logger;
 
 namespace
 {
@@ -92,16 +92,16 @@ bool DownloadManifest()
 
             fs::copy_file(temporary, target, fs::copy_options::overwrite_existing);
             fs::remove(temporary, ec);
-            TraceLog(LOG_INFO, "Master manifest downloaded successfully");
+            logger::Info("Master manifest downloaded successfully");
             return true;
         }
         catch (const std::exception &e)
         {
-            TraceLog(LOG_WARNING, "Failed to download master manifest: %s", e.what());
+            logger::Warning("Failed to download master manifest: %s", e.what());
         }
         catch (...)
         {
-            TraceLog(LOG_WARNING, "Failed to download master manifest: unknown error");
+            logger::Warning("Failed to download master manifest: unknown error");
         }
 
         if (!WaitBeforeRetry())
