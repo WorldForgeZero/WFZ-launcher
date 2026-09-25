@@ -1,17 +1,12 @@
-#include <raylib.h>
+#include <iostream>
+
+#include <GLFW/glfw3.h>
+#include <RmlUi/Core.h>
+
+#include "RmlUi_Backend.h"
 
 #include "app/exit_req.h"
 #include "app/thread_manager.h"
-
-#include "ui/cursor.h"
-#include "ui/font.h"
-#include "ui/icon.h"
-#include "ui/screen.h"
-
-#include "ui/info/info_menu.h"
-#include "ui/main/main_menu.h"
-#include "ui/news/news_menu.h"
-#include "ui/settings/settings_menu.h"
 
 #include "daemon/bootstrap.h"
 
@@ -34,59 +29,112 @@ int main(int argc, char **argv)
 
     wfz::logger::Init();
     wfz::logger::DumpStartupInfo();
+
     wfz::settings::Load();
 
-    SetConfigFlags(FLAG_VSYNC_HINT | FLAG_WINDOW_RESIZABLE);
-    InitWindow(window_width, window_height, "World Forge Zero");
-    SetWindowMinSize(window_width, window_height);
+    if (!Backend::Initialize(
+            "World Forge Zero",
+            window_width,
+            window_height,
+            true))
+    {
+        std::cerr << "Failed to initialize RmlUi backend\n";
 
-    WFZSetWindowIcon();
-    WFZLoadFont();
+        wfz::logger::Shutdown();
+        return 1;
+    }
+
+    Rml::SetSystemInterface(Backend::GetSystemInterface());
+    Rml::SetRenderInterface(Backend::GetRenderInterface());
+
+    if (!Rml::Initialise())
+    {
+        std::cerr << "Failed to initialize RmlUi\n";
+
+        Backend::Shutdown();
+        wfz::logger::Shutdown();
+        return 1;
+    }
+
+    GLFWwindow *window = glfwGetCurrentContext();
+
+    if (!window)
+    {
+        std::cerr << "Failed to get GLFW window\n";
+
+        Rml::Shutdown();
+        Backend::Shutdown();
+        wfz::logger::Shutdown();
+        return 1;
+    }
+
+    glfwSetWindowSizeLimits(
+        window,
+        window_width,
+        window_height,
+        GLFW_DONT_CARE,
+        GLFW_DONT_CARE);
+
+    Rml::Context *context = Rml::CreateContext(
+        "main",
+        Rml::Vector2i(window_width, window_height));
+
+    if (!context)
+    {
+        std::cerr << "Failed to create RmlUi context\n";
+
+        Rml::Shutdown();
+        Backend::Shutdown();
+        wfz::logger::Shutdown();
+        return 1;
+    }
+
+    if (!Rml::LoadFontFace("assets/fonts/Monocraft.ttf"))
+    {
+        std::cerr << "Failed to load main font\n";
+
+        Rml::Shutdown();
+        Backend::Shutdown();
+        wfz::logger::Shutdown();
+        return 1;
+    }
+
+    Rml::ElementDocument *document =
+        context->LoadDocument("assets/ui/main.rml");
+
+    if (!document)
+    {
+        std::cerr << "Failed to load main document\n";
+
+        Rml::Shutdown();
+        Backend::Shutdown();
+        wfz::logger::Shutdown();
+        return 1;
+    }
+
+    document->Show();
 
     wfza::ThreadManager::instance().submit(RunDaemonBootstrap);
-    WFZScreen current_screen = WFZScreen::MainMenu;
-    while (!WindowShouldClose() && !wfza::ExitRequested())
+
+    while (!wfza::ExitRequested() &&
+           Backend::ProcessEvents(context))
     {
-        WFZBeginCursorFrame();
-        BeginDrawing();
+        context->Update();
 
-        const float screen_width = static_cast<float>(GetScreenWidth());
-        const float screen_height = static_cast<float>(GetScreenHeight());
-
-        switch (current_screen)
-        {
-        case WFZScreen::MainMenu:
-            WFZDrawMainMenu(screen_width, screen_height, current_screen);
-            break;
-
-        case WFZScreen::Settings:
-            WFZDrawSettings(screen_width, screen_height, current_screen);
-            break;
-
-        case WFZScreen::Info:
-            WFZDrawInfo(screen_width, screen_height, current_screen);
-            break;
-
-        case WFZScreen::News:
-            WFZDrawNews(screen_width, screen_height, current_screen);
-            break;
-
-        default:
-            // Сейфгард на случай если кто-то (я) идиот и не добавил обработчик
-            current_screen = WFZScreen::MainMenu;
-            break;
-        }
-
-        EndDrawing();
-        WFZEndCursorFrame();
+        Backend::BeginFrame();
+        context->Render();
+        Backend::PresentFrame();
     }
 
     wfza::RequestExit();
 
-    WFZUnloadFont();
-    CloseWindow();
-
     wfza::ThreadManager::instance().shutdown();
+
+    document->Close();
+
+    Rml::Shutdown();
+    Backend::Shutdown();
+
     wfz::logger::Shutdown();
 
     return 0;
