@@ -8,8 +8,8 @@
 #include <system_error>
 
 #include <nlohmann/json.hpp>
-#include <raylib.h>
 
+#include "etc/logger.h"
 #include "etc/paths.h"
 
 #include "network/download.h"
@@ -17,10 +17,13 @@
 
 #include "settings/settings.h"
 
-#include "ui/loading/loading_state.h"
+#include "app/loading_state.h"
 
 namespace fs = std::filesystem;
+
 using json = nlohmann::json;
+
+namespace logger = wfz::logger;
 
 namespace
 {
@@ -176,7 +179,7 @@ namespace
 
         if (local_revision && *local_revision == remote_revision && fs::exists(content_path))
         {
-            TraceLog(LOG_INFO, "%s news are up to date: revision %d", name, remote_revision);
+            logger::Info("%s news are up to date: revision %d", name, remote_revision);
 
             return;
         }
@@ -189,7 +192,7 @@ namespace
 
         try
         {
-            TraceLog(LOG_INFO, "Downloading %s news: revision %d", name, remote_revision);
+            logger::Info("Downloading %s news: revision %d", name, remote_revision);
             wfz::network::download(content_url, temporary_path);
 
             if (!ValidateNewsContent(temporary_path))
@@ -200,7 +203,7 @@ namespace
             CommitDownloadedFile(temporary_path, content_path);
             SaveLocalManifest(manifest_path, remote_manifest);
 
-            TraceLog(LOG_INFO, "%s news updated successfully: revision %d", name, remote_revision);
+            logger::Info("%s news updated successfully: revision %d", name, remote_revision);
         }
         catch (...)
         {
@@ -216,7 +219,7 @@ namespace
     {
         if (!news_manifest.contains(url_key) || !news_manifest[url_key].is_string())
         {
-            TraceLog(LOG_INFO, "%s news source is not configured", name);
+            logger::Info("%s news source is not configured", name);
 
             return;
         }
@@ -225,7 +228,7 @@ namespace
 
         if (base_url.empty())
         {
-            TraceLog(LOG_INFO, "%s news source is not configured", name);
+            logger::Info("%s news source is not configured", name);
 
             return;
         }
@@ -236,11 +239,11 @@ namespace
         }
         catch (const std::exception &e)
         {
-            TraceLog(LOG_INFO, "%s news are unavailable: %s", name, e.what());
+            logger::Info("%s news are unavailable: %s", name, e.what());
         }
         catch (...)
         {
-            TraceLog(LOG_INFO, "%s news are unavailable", name);
+            logger::Info("%s news are unavailable", name);
         }
     }
 }
@@ -251,7 +254,7 @@ void ProcessNewsUpdates()
 
     if (!settings.load_launcher_news && !settings.load_game_news)
     {
-        TraceLog(LOG_INFO, "News updates are disabled in settings");
+        logger::Info("News updates are disabled in settings");
 
         return;
     }
@@ -264,20 +267,20 @@ void ProcessNewsUpdates()
     }
     catch (const std::exception &e)
     {
-        TraceLog(LOG_WARNING, "Failed to load master manifest for news: %s", e.what());
+        logger::Warning("Failed to load master manifest for news: %s", e.what());
 
         return;
     }
     catch (...)
     {
-        TraceLog(LOG_WARNING, "Failed to load master manifest for news");
+        logger::Warning("Failed to load master manifest for news");
 
         return;
     }
 
     if (!master_manifest.contains("news") || !master_manifest["news"].is_object())
     {
-        TraceLog(LOG_INFO, "News sources are not configured");
+        logger::Info("News sources are not configured");
 
         return;
     }
@@ -296,7 +299,7 @@ void ProcessNewsUpdates()
     }
     else
     {
-        TraceLog(LOG_INFO, "Launcher news updates are disabled in settings");
+        logger::Info("Launcher news updates are disabled in settings");
     }
 
     if (settings.load_game_news)
@@ -311,6 +314,6 @@ void ProcessNewsUpdates()
     }
     else
     {
-        TraceLog(LOG_INFO, "Game news updates are disabled in settings");
+        logger::Info("Game news updates are disabled in settings");
     }
 }

@@ -2,7 +2,7 @@
 
 #include <filesystem>
 
-#include "ui/loading/loading_state.h"
+#include "app/loading_state.h"
 
 #include "etc/paths.h"
 
@@ -39,7 +39,6 @@ void RunDaemonBootstrap()
 
     if (!ProcessLauncherUpdate())
         return;
-
 
     ProcessNewsUpdates();
 

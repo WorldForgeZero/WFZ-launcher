@@ -6,10 +6,10 @@
 #include <string>
 
 #include <nlohmann/json.hpp>
-#include <raylib.h>
 
 #include "app/exit_req.h"
 
+#include "etc/logger.h"
 #include "etc/paths.h"
 #include "etc/self_update.h"
 
@@ -18,7 +18,7 @@
 #include "settings/settings.h"
 #include "settings/version.h"
 
-#include "ui/loading/loading_state.h"
+#include "app/loading_state.h"
 
 namespace fs = std::filesystem;
 
@@ -26,6 +26,7 @@ namespace app = wfz::app;
 namespace loading = wfz::loading_state;
 namespace network = wfz::network;
 namespace paths = wfz::paths;
+namespace logger = wfz::logger;
 
 namespace
 {
@@ -85,7 +86,7 @@ namespace
             throw std::runtime_error("Failed to start launcher self-update");
         }
 
-        TraceLog(LOG_INFO, "Launcher self-update started");
+        logger::Info("Launcher self-update started");
 
         app::RequestExit();
     }
@@ -103,7 +104,7 @@ bool ProcessLauncherUpdate()
 
     if (CompareVersions(launcher_version, latest_version) >= 0)
     {
-        TraceLog(LOG_INFO, "Launcher is up to date: %s", launcher_version);
+        logger::Info("Launcher is up to date: %s", launcher_version);
 
         return true;
     }
@@ -112,7 +113,7 @@ bool ProcessLauncherUpdate()
     const auto settings = wfz::settings::GetSnapshot();
     if (mandatory_update)
     {
-        TraceLog(LOG_WARNING, "Launcher version %s is below minimum supported version %s", launcher_version, minimum_version.c_str());
+        logger::Warning("Launcher version %s is below minimum supported version %s", launcher_version, minimum_version.c_str());
 
         StartLauncherUpdate(launcher);
 
@@ -121,14 +122,14 @@ bool ProcessLauncherUpdate()
 
     if (!settings.check_launcher_updates)
     {
-        TraceLog(LOG_INFO, "Launcher update available, but update checks are disabled");
+        logger::Info("Launcher update available, but update checks are disabled");
 
         return true;
     }
 
     if (!settings.launcher_auto_update)
     {
-        TraceLog(LOG_INFO, "Launcher update available: %s -> %s", launcher_version, latest_version.c_str());
+        logger::Info("Launcher update available: %s -> %s", launcher_version, latest_version.c_str());
 
         // TODO:
         // Send update information to UI popup.
@@ -136,7 +137,7 @@ bool ProcessLauncherUpdate()
         return true;
     }
 
-    TraceLog(LOG_INFO, "Updating launcher: %s -> %s", launcher_version, latest_version.c_str());
+    logger::Info("Updating launcher: %s -> %s", launcher_version, latest_version.c_str());
 
     StartLauncherUpdate(launcher);
 
