@@ -20,7 +20,9 @@
 #include "app/loading_state.h"
 
 namespace fs = std::filesystem;
+
 using json = nlohmann::json;
+
 namespace logger = wfz::logger;
 
 namespace

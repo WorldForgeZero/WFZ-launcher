@@ -1,0 +1,155 @@
+<rml>
+
+    <head>
+        <title>Настройки</title>
+
+        <link type="text/rcss" href="../common.rcss" />
+        <link type="text/rcss" href="settings.rcss" />
+    </head>
+
+    <body>
+        <div class="page-title">
+            НАСТРОЙКИ
+        </div>
+
+        <input id="settings-search" type="text" placeholder="Поиск..." />
+
+        <div class="header-line"></div>
+
+        <div id="settings-content">
+            <div class="settings-panel" id="settings-news">
+                <div class="settings-panel-title">
+                    НОВОСТИ
+                </div>
+
+                <div class="settings-panel-line"></div>
+
+                <label class="setting-row">
+                    <div class="setting-text">
+                        <div class="setting-title">
+                            Новости лаунчера
+                        </div>
+
+                        <div class="setting-description">
+                            Получать новости и обновления лаунчера
+                        </div>
+                    </div>
+
+                    <input id="setting-load-launcher-news" type="checkbox" />
+                </label>
+
+                <label class="setting-row">
+                    <div class="setting-text">
+                        <div class="setting-title">
+                            Новости игры
+                        </div>
+
+                        <div class="setting-description">
+                            Получать новости World Forge Zero
+                        </div>
+                    </div>
+
+                    <input id="setting-load-game-news" type="checkbox" />
+                </label>
+            </div>
+
+            <div class="settings-panel" id="settings-behavior">
+                <div class="settings-panel-title">
+                    ПОВЕДЕНИЕ
+                </div>
+
+                <div class="settings-panel-line"></div>
+
+                <label class="setting-row">
+                    <div class="setting-text">
+                        <div class="setting-title">
+                            Запуск после обновления
+                        </div>
+
+                        <div class="setting-description">
+                            Сразу запускать игру после завершения обновления
+                        </div>
+                    </div>
+
+                    <input id="setting-launch-after-update" type="checkbox" />
+                </label>
+
+                <label class="setting-row">
+                    <div class="setting-text">
+                        <div class="setting-title">
+                            Обновления лаунчера
+                        </div>
+
+                        <div class="setting-description">
+                            Проверять наличие обновлений лаунчера при запуске
+                        </div>
+                    </div>
+
+                    <input id="setting-check-launcher-updates" type="checkbox" />
+                </label>
+
+                <label class="setting-row">
+                    <div class="setting-text">
+                        <div class="setting-title">
+                            Авто обновление лаунчера
+                        </div>
+
+                        <div class="setting-description">
+                            Автоматически пытаться обновить лаунчер при доступной новой версии
+                        </div>
+                    </div>
+
+                    <input id="setting-launcher-auto-update" type="checkbox" />
+                </label>
+            </div>
+
+            <div class="settings-panel" id="settings-advanced">
+                <div class="settings-panel-title">
+                    РАСШИРЕННЫЕ
+                </div>
+
+                <div class="settings-panel-line"></div>
+
+                <label class="setting-row">
+                    <div class="setting-text">
+                        <div class="setting-title">
+                            Dev режим
+                        </div>
+
+                        <div class="setting-description">
+                            Включает функции для разработки. Если вы не знаете,
+                            зачем он нужен - он вам не нужен.
+                        </div>
+                    </div>
+
+                    <input id="setting-dev-mode" type="checkbox" />
+                </label>
+
+                <label class="setting-row">
+                    <div class="setting-text">
+                        <div class="setting-title">
+                            Admin режим
+                        </div>
+
+                        <div class="setting-description">
+                            Отключает некоторые ограничения интерфейса лаунчера.
+                            Реальных прав не предоставляет.
+                        </div>
+                    </div>
+
+                    <input id="setting-admin-bypass" type="checkbox" />
+                </label>
+            </div>
+
+            <div id="settings-empty">
+                Ничего не найдено
+            </div>
+        </div>
+
+        <div class="footer">
+            <button id="settings-back" class="back-button">
+                НАЗАД
+            </button>
+        </div>
+    </body>
+</rml>

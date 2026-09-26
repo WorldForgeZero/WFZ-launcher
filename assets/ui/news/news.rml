@@ -1,0 +1,49 @@
+<rml>
+
+    <head>
+        <title>Новости</title>
+
+        <link type="text/rcss" href="../common.rcss" />
+        <link type="text/rcss" href="news.rcss" />
+    </head>
+
+    <body>
+        <div id="news-title">
+            НОВОСТИ
+        </div>
+
+        <div id="news-tabs">
+            <button id="news-tab-launcher" class="news-tab active">
+                ЛАУНЧЕР
+                <span id="news-unread-launcher" class="unread-dot"></span>
+            </button>
+
+            <button id="news-tab-game" class="news-tab">
+                ИГРА
+                <span id="news-unread-game" class="unread-dot"></span>
+            </button>
+        </div>
+
+        <div id="news-header-line"></div>
+
+        <div id="news-content">
+            <div id="news-status">
+                ОЖИДАНИЕ НОВОСТЕЙ...
+            </div>
+
+            <div id="news-list">
+                <!--
+                C++ will populate news days here.
+            -->
+            </div>
+        </div>
+
+        <div class="footer">
+            <div class="footer-line"></div>
+
+            <button id="news-back" class="back-button">
+                НАЗАД
+            </button>
+        </div>
+    </body>
+</rml>

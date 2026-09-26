@@ -1,0 +1,51 @@
+<rml>
+
+    <head>
+        <title>World Forge Zero</title>
+
+        <link type="text/rcss" href="../common.rcss" />
+        <link type="text/rcss" href="main.rcss" />
+    </head>
+
+    <body>
+        <div id="background"></div>
+
+        <div id="title">
+            WORLD FORGE ZERO
+        </div>
+
+        <div id="launcher-version">
+            Хуй!
+        </div>
+
+        <button id="open-info" class="navigation-button" title="Информация">
+            <span class="button-label">I</span>
+        </button>
+
+        <button id="open-news" class="navigation-button">
+            <span class="button-label">Новости</span>
+        </button>
+
+        <button id="open-settings" class="navigation-button">
+            <span class="button-label">Настройки</span>
+        </button>
+
+        <div id="launcher-control">
+            <div id="loading-status">
+                Загрузка...
+            </div>
+
+            <div id="loading-progress">
+                <div id="loading-progress-value"></div>
+
+                <div id="play-morph-label">
+                    ИГРАТЬ
+                </div>
+            </div>
+
+            <button id="play-button">
+                <span class="button-label">ИГРАТЬ</span>
+            </button>
+        </div>
+    </body>
+</rml>
