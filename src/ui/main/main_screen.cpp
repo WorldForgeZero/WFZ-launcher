@@ -110,12 +110,7 @@ namespace wfz::ui::main_screen
 
         g_play_button = RequireElement(document, "play-button");
 
-        if (!g_version ||
-            !g_status ||
-            !g_progress ||
-            !g_progress_value ||
-            !g_morph_label ||
-            !g_play_button)
+        if (!g_version || !g_status || !g_progress || !g_progress_value || !g_morph_label || !g_play_button)
         {
             return false;
         }

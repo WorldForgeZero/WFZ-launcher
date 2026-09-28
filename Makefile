@@ -4,6 +4,7 @@ MAKEFLAGS += -j$(shell nproc 2>/dev/null || echo 4)
 CXX := g++
 WIN_CXX := x86_64-w64-mingw32-g++
 WIN_WINDRES := x86_64-w64-mingw32-windres
+PYTHON ?= python3
 
 # Project
 TARGET := wfz_launcher
@@ -13,6 +14,39 @@ SRC_DIR := src
 BUILD_DIR := build
 DIST_DIR := dist
 ASSETS_DIR := assets
+TOOLS_DIR := tools
+
+MAKEFILE_FILE := $(lastword $(MAKEFILE_LIST))
+
+# Runtime assets
+RUNTIME_ASSETS := \
+	$(ASSETS_DIR)/fonts/Monocraft.ttf \
+	$(ASSETS_DIR)/icon/window_icon.tga \
+	$(ASSETS_DIR)/ui/common.rcss \
+	$(ASSETS_DIR)/ui/info/info.rcss \
+	$(ASSETS_DIR)/ui/info/info.rml \
+	$(ASSETS_DIR)/ui/main/main.rcss \
+	$(ASSETS_DIR)/ui/main/main.rml \
+	$(ASSETS_DIR)/ui/news/news.rcss \
+	$(ASSETS_DIR)/ui/news/news.rml \
+	$(ASSETS_DIR)/ui/settings/settings.rcss \
+	$(ASSETS_DIR)/ui/settings/settings.rml
+
+# Embedded resources
+RESOURCE_EMBED_SCRIPT := \
+	$(TOOLS_DIR)/embed_resources.py
+
+GENERATED_RESOURCE_INC := \
+	$(BUILD_DIR)/generated/embedded_resources.inc
+
+EMBEDDED_ASSETS := \
+	$(RUNTIME_ASSETS)
+
+RESOURCE_RELEASE_OBJ := \
+	$(BUILD_DIR)/release/$(SRC_DIR)/resources/embedded_resources.o
+
+RESOURCE_WIN_RELEASE_OBJ := \
+	$(BUILD_DIR)/win-release/$(SRC_DIR)/resources/embedded_resources.o
 
 # Windows resources
 ICON_ICO_FILE := $(ASSETS_DIR)/icon/icon.ico
@@ -68,6 +102,7 @@ WIN_RELEASE_OBJS := \
 # Includes
 INCLUDES := \
 	-I$(SRC_DIR) \
+	-I$(BUILD_DIR) \
 	-I$(RMLUI_BACKEND_DIR) \
 	-I$(RMLUI_ROOT)/include \
 	-I$(FREETYPE_ROOT)/include/freetype2 \
@@ -77,6 +112,7 @@ INCLUDES := \
 
 WIN_INCLUDES := \
 	-I$(SRC_DIR) \
+	-I$(BUILD_DIR) \
 	-I$(RMLUI_BACKEND_DIR) \
 	-I$(WIN_RMLUI_ROOT)/include \
 	-I$(WIN_FREETYPE_ROOT)/include/freetype2 \
@@ -118,6 +154,7 @@ WIN_DEBUG_CXXFLAGS := \
 RELEASE_CXXFLAGS := \
 	$(COMMON_CXXFLAGS) \
 	-DNDEBUG \
+	-DWFZ_EMBED_ASSETS \
 	-O3 \
 	-flto=auto \
 	-ffunction-sections \
@@ -126,6 +163,7 @@ RELEASE_CXXFLAGS := \
 WIN_RELEASE_CXXFLAGS := \
 	$(WIN_COMMON_CXXFLAGS) \
 	-DNDEBUG \
+	-DWFZ_EMBED_ASSETS \
 	-O3 \
 	-flto=auto \
 	-ffunction-sections \
@@ -204,6 +242,23 @@ all: debug
 
 clear: clean
 
+# Embedded resources
+$(GENERATED_RESOURCE_INC): \
+	$(RESOURCE_EMBED_SCRIPT) \
+	$(MAKEFILE_FILE) \
+	$(EMBEDDED_ASSETS)
+	@mkdir -p $(@D)
+	$(PYTHON) \
+		$(RESOURCE_EMBED_SCRIPT) \
+		--output $@ \
+		$(EMBEDDED_ASSETS)
+
+$(RESOURCE_RELEASE_OBJ): \
+	$(GENERATED_RESOURCE_INC)
+
+$(RESOURCE_WIN_RELEASE_OBJ): \
+	$(GENERATED_RESOURCE_INC)
+
 # Linux compilation
 $(BUILD_DIR)/debug/%.o: %.cpp
 	@mkdir -p $(@D)
@@ -278,7 +333,6 @@ release: $(RELEASE_OBJS)
 win-debug: \
 	$(WIN_DEBUG_OBJS) \
 	$(WIN_DEBUG_EXE_ICON_OBJ)
-
 	$(WIN_CXX) \
 		$(WIN_DEBUG_OBJS) \
 		$(WIN_DEBUG_EXE_ICON_OBJ) \
@@ -288,7 +342,6 @@ win-debug: \
 win-release: \
 	$(WIN_RELEASE_OBJS) \
 	$(WIN_RELEASE_EXE_ICON_OBJ)
-
 	$(WIN_CXX) \
 		$(WIN_RELEASE_OBJS) \
 		$(WIN_RELEASE_EXE_ICON_OBJ) \
@@ -303,31 +356,37 @@ run-release: release
 	./$(TARGET)
 
 # Distribution
-DIST_MODE ?= debug
-
-dist: $(DIST_MODE)
+dist: debug
 	@rm -rf $(DIST_DIR)
 	@mkdir -p $(DIST_DIR)
 	cp $(TARGET) $(DIST_DIR)/
-	cp -r $(ASSETS_DIR) $(DIST_DIR)/
-	@echo "Linux distribution built in $(DIST_DIR)/ (mode: $(DIST_MODE))"
+	@for file in $(RUNTIME_ASSETS); do \
+		mkdir -p "$(DIST_DIR)/$$(dirname "$$file")"; \
+		cp "$$file" "$(DIST_DIR)/$$file"; \
+	done
+	@echo "Linux debug distribution built in $(DIST_DIR)/"
 
-dist-release:
-	$(MAKE) dist DIST_MODE=release
+dist-release: release
+	@rm -rf $(DIST_DIR)
+	@mkdir -p $(DIST_DIR)
+	cp $(TARGET) $(DIST_DIR)/
+	@echo "Linux release distribution built in $(DIST_DIR)/"
 
 dist-win: win-debug
 	@rm -rf $(DIST_DIR)
 	@mkdir -p $(DIST_DIR)
 	cp $(WIN_TARGET) $(DIST_DIR)/
-	cp -r $(ASSETS_DIR) $(DIST_DIR)/
-	@echo "Windows distribution built in $(DIST_DIR)/ (mode: debug)"
+	@for file in $(RUNTIME_ASSETS); do \
+		mkdir -p "$(DIST_DIR)/$$(dirname "$$file")"; \
+		cp "$$file" "$(DIST_DIR)/$$file"; \
+	done
+	@echo "Windows debug distribution built in $(DIST_DIR)/"
 
 dist-win-release: win-release
 	@rm -rf $(DIST_DIR)
 	@mkdir -p $(DIST_DIR)
 	cp $(WIN_TARGET) $(DIST_DIR)/
-	cp -r $(ASSETS_DIR) $(DIST_DIR)/
-	@echo "Windows distribution built in $(DIST_DIR)/ (mode: release)"
+	@echo "Windows release distribution built in $(DIST_DIR)/"
 
 dist-release-all: release win-release
 	@rm -rf $(DIST_DIR)
@@ -335,7 +394,6 @@ dist-release-all: release win-release
 
 	cp $(TARGET) $(DIST_DIR)/
 	cp $(WIN_TARGET) $(DIST_DIR)/
-	cp -r $(ASSETS_DIR) $(DIST_DIR)/
 
 	@echo "All release distributions built:"
 	@echo "  Linux:   $(DIST_DIR)/$(TARGET)"
