@@ -1,4 +1,4 @@
-#background {
+#main-background {
     position: absolute;
 
     left: 0;
@@ -12,10 +12,10 @@
     decorator: linear-gradient(to bottom, #141414, #040404);
 }
 
-#title {
+#main-title {
     position: absolute;
 
-    left: 32px;
+    left: 4%;
     top: 30px;
 
     font-size: 32px;
@@ -25,22 +25,45 @@
 #launcher-version {
     position: absolute;
 
-    left: 34px;
+    left: 4%;
     top: 78px;
 
     font-size: 16px;
     color: #9a9a9a;
 }
 
-.navigation-button {
+#main-navigation {
     position: absolute;
 
+    right: 4%;
     top: 25px;
+
+    width: 356px;
     height: 44px;
 
+    display: flex;
+    flex-direction: row;
+
+    align-items: stretch;
+    justify-content: flex-end;
+}
+
+.navigation-button {
+    position: relative;
+
+    height: 44px;
+
+    margin-left: 12px;
     padding: 0;
 
-    font-family: Monocraft;
+    flex: none;
+
+    display: flex;
+    flex-direction: row;
+
+    align-items: center;
+    justify-content: center;
+
     font-size: 16px;
 
     color: #e8e8e8;
@@ -60,33 +83,28 @@
     background-color: #343434;
 }
 
-#open-settings {
-    right: 32px;
-
-    width: 154px;
-}
-
-#open-news {
-    right: 198px;
-
-    width: 134px;
-}
-
 #open-info {
-    right: 344px;
-
     width: 44px;
+
+    margin-left: 0;
 
     font-size: 18px;
 }
 
+#open-news {
+    width: 134px;
+}
+
+#open-settings {
+    width: 154px;
+}
 #launcher-control {
     position: absolute;
 
-    left: 32px;
-    right: 32px;
+    left: 4%;
     bottom: 32px;
 
+    width: 92%;
     height: 54px;
 }
 
@@ -94,8 +112,11 @@
     position: absolute;
 
     left: 0;
-    right: 0;
     bottom: 18px;
+
+    width: 100%;
+
+    text-align: left;
 
     font-size: 18px;
     color: #e8e8e8;
@@ -139,10 +160,9 @@
     left: 0;
     top: 16px;
 
-    width: 100%;
+    width: 320px;
 
     text-align: center;
-    white-space: nowrap;
 
     font-size: 22px;
     color: #0e0e0e;
@@ -163,7 +183,11 @@
 
     padding: 0;
 
-    font-family: Monocraft;
+    flex-direction: row;
+
+    align-items: center;
+    justify-content: center;
+
     font-size: 22px;
 
     color: #0e0e0e;
@@ -172,30 +196,4 @@
     border-width: 1px;
     border-color: #ff9800;
     border-radius: 5px;
-}
-
-#play-button:hover {
-    background-color: #ffb74d;
-    border-color: #ffb74d;
-}
-
-#play-button:active {
-    background-color: #e68200;
-    border-color: #e68200;
-}
-
-.button-label {
-    position: absolute;
-
-    left: 0;
-    top: 13px;
-
-    width: 100%;
-
-    text-align: center;
-    white-space: nowrap;
-}
-
-#play-button .button-label {
-    top: 16px;
 }

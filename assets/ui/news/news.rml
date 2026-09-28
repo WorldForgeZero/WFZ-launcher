@@ -8,41 +8,37 @@
     </head>
 
     <body>
-        <div id="news-title">
+        <div class="page-title">
             НОВОСТИ
         </div>
 
         <div id="news-tabs">
             <button id="news-tab-launcher" class="news-tab active">
-                ЛАУНЧЕР
+                <span class="button-label">ЛАУНЧЕР</span>
                 <span id="news-unread-launcher" class="unread-dot"></span>
             </button>
 
             <button id="news-tab-game" class="news-tab">
-                ИГРА
+                <span class="button-label">ИГРА</span>
                 <span id="news-unread-game" class="unread-dot"></span>
             </button>
         </div>
 
         <div id="news-header-line"></div>
 
-        <div id="news-content">
+        <div id="news-content" class="page-content">
             <div id="news-status">
                 ОЖИДАНИЕ НОВОСТЕЙ...
             </div>
 
-            <div id="news-list">
-                <!--
-                C++ will populate news days here.
-            -->
-            </div>
+            <div id="news-list"></div>
         </div>
 
         <div class="footer">
             <div class="footer-line"></div>
 
             <button id="news-back" class="back-button">
-                НАЗАД
+                <span class="button-label">НАЗАД</span>
             </button>
         </div>
     </body>

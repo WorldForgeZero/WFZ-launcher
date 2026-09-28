@@ -12,9 +12,9 @@
             ИНФОРМАЦИЯ
         </div>
 
-        <div class="header-line"></div>
+        <div class="page-header-line"></div>
 
-        <div id="info-content">
+        <div id="info-content" class="page-content">
             <div id="info-launcher-title">
                 WORLD FORGE ZERO LAUNCHER
             </div>
@@ -78,7 +78,7 @@
             <div class="footer-line"></div>
 
             <button id="info-back" class="back-button">
-                НАЗАД
+                <span class="button-label">НАЗАД</span>
             </button>
         </div>
     </body>

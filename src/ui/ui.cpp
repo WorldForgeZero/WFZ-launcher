@@ -4,6 +4,7 @@
 
 #include "etc/logger.h"
 
+#include "ui/info/info_screen.h"
 #include "ui/main/main_screen.h"
 
 namespace wfz::ui
@@ -222,46 +223,33 @@ namespace wfz::ui
             return false;
         }
 
-        if (!main_screen::Init(
-                g_main_document))
+        if (!main_screen::Init(g_main_document))
         {
-            wfz::logger::Error(
-                "Failed to initialize main UI screen");
+            wfz::logger::Error("Failed to initialize main UI screen");
+
+            Shutdown();
+            return false;
+        }
+
+        if (!info_screen::Init(g_info_document))
+        {
+            wfz::logger::Error("Failed to initialize info UI screen");
 
             Shutdown();
             return false;
         }
 
         const bool navigation_ok =
-            BindNavigation(
-                g_main_document,
-                "open-settings") &&
-
-            BindNavigation(
-                g_main_document,
-                "open-news") &&
-
-            BindNavigation(
-                g_main_document,
-                "open-info") &&
-
-            BindNavigation(
-                g_settings_document,
-                "settings-back") &&
-
-            BindNavigation(
-                g_news_document,
-                "news-back") &&
-
-            BindNavigation(
-                g_info_document,
-                "info-back");
+            BindNavigation(g_main_document, "open-settings") &&
+            BindNavigation(g_main_document, "open-news") &&
+            BindNavigation(g_main_document, "open-info") &&
+            BindNavigation(g_settings_document, "settings-back") &&
+            BindNavigation(g_news_document, "news-back") &&
+            BindNavigation(g_info_document, "info-back");
 
         if (!navigation_ok)
         {
-            wfz::logger::Error(
-                "Failed to initialize UI navigation");
-
+            wfz::logger::Error("Failed to initialize UI navigation");
             Shutdown();
             return false;
         }
@@ -271,27 +259,19 @@ namespace wfz::ui
         return true;
     }
 
-    void Update(
-        const float delta_time)
+    void Update(const float delta_time)
     {
-        main_screen::Update(
-            delta_time);
+        main_screen::Update(delta_time);
     }
 
     void Shutdown()
     {
         main_screen::Shutdown();
+        info_screen::Shutdown();
 
-        CloseDocument(
-            g_main_document);
-
-        CloseDocument(
-            g_settings_document);
-
-        CloseDocument(
-            g_news_document);
-
-        CloseDocument(
-            g_info_document);
+        CloseDocument(g_main_document);
+        CloseDocument(g_settings_document);
+        CloseDocument(g_news_document);
+        CloseDocument(g_info_document);
     }
 }

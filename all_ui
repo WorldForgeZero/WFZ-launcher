@@ -1,0 +1,1203 @@
+
+=== common.rcss ===
+body {
+    width: 100%;
+    height: 100%;
+
+    margin: 0;
+    padding: 0;
+
+    overflow: hidden;
+
+    font-family: Monocraft;
+
+    background-color: #0e0e0e;
+    color: #e8e8e8;
+}
+
+div {
+    display: block;
+}
+
+p {
+    display: block;
+}
+
+button {
+    font-family: Monocraft;
+}
+
+input {
+    font-family: Monocraft;
+}
+
+.page-title {
+    position: absolute;
+
+    left: 4%;
+    top: 28px;
+
+    width: 92%;
+
+    font-size: 28px;
+    color: #e8e8e8;
+}
+
+.page-header-line {
+    position: absolute;
+
+    left: 4%;
+
+    width: 92%;
+    height: 2px;
+
+    background-color: #ff9800;
+}
+
+.page-content {
+    position: absolute;
+
+    left: 4%;
+
+    width: 92%;
+
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.footer {
+    position: absolute;
+
+    left: 4%;
+    bottom: 14px;
+
+    width: 92%;
+    height: 62px;
+}
+
+.footer-line {
+    width: 100%;
+    height: 1px;
+
+    background-color: #3a3a3a;
+}
+
+.back-button {
+    position: absolute;
+
+    left: 0;
+    bottom: 0;
+
+    width: 142px;
+    height: 48px;
+
+    padding: 0;
+
+    display: flex;
+    flex-direction: row;
+
+    align-items: center;
+    justify-content: center;
+
+    font-family: Monocraft;
+    font-size: 18px;
+
+    color: #e8e8e8;
+    background-color: #171717;
+
+    border-width: 1px;
+    border-color: #484848;
+    border-radius: 3px;
+}
+
+.back-button:hover {
+    background-color: #202020;
+    border-color: #ff9800;
+}
+
+.back-button:active {
+    background-color: #282828;
+}
+
+.button-label {
+    display: block;
+
+    white-space: nowrap;
+}
+
+body,
+div {
+    display: block;
+}
+
+button,
+input {
+    font-family: Monocraft;
+}
+
+/*
+ * Vertical scrollbar.
+ *
+ * RmlUi has no default styling for generated scrollbars.
+ * Without an explicit width the scrollbar can consume the
+ * content area's width.
+ */
+scrollbarvertical {
+    width: 10px;
+
+    background-color: #121212;
+}
+
+scrollbarvertical sliderarrowdec,
+scrollbarvertical sliderarrowinc {
+    width: 0;
+    height: 0;
+}
+
+scrollbarvertical slidertrack {
+    width: 10px;
+
+    background-color: #181818;
+}
+
+scrollbarvertical sliderbar {
+    width: 8px;
+    min-height: 28px;
+
+    margin-left: 1px;
+
+    background-color: #4a4a4a;
+
+    border-radius: 4px;
+}
+
+scrollbarvertical sliderbar:hover {
+    background-color: #686868;
+}
+
+scrollbarvertical sliderbar:active {
+    background-color: #ff9800;
+}
+
+/*
+ * Checkboxes.
+ *
+ * RmlUi automatically adds the input type as a class,
+ * so <input type="checkbox"> matches input.checkbox.
+ */
+input.checkbox {
+    width: 22px;
+    height: 22px;
+
+    padding: 0;
+
+    background-color: #151515;
+
+    border-width: 1px;
+    border-color: #555555;
+    border-radius: 3px;
+}
+
+input.checkbox:hover {
+    border-color: #ff9800;
+}
+
+input.checkbox:checked {
+    background-color: #ff9800;
+    border-color: #ff9800;
+}
+
+#settings-search {
+    position: absolute;
+
+    left: 4%;
+    top: 72px;
+
+    width: 92%;
+    height: 44px;
+
+    box-sizing: border-box;
+
+    padding-left: 14px;
+    padding-right: 14px;
+
+    line-height: 42px;
+
+    font-size: 16px;
+
+    color: #e8e8e8;
+    background-color: #1c1c1c;
+
+    border-width: 1px;
+    border-color: #414141;
+    border-radius: 4px;
+}
+
+=== info/info.rcss ===
+.page-header-line {
+    top: 72px;
+}
+
+#info-content {
+    top: 94px;
+    bottom: 76px;
+}
+
+#info-launcher-title {
+    width: 100%;
+
+    margin-top: 12px;
+    margin-bottom: 10px;
+
+    font-size: 20px;
+    color: #e8e8e8;
+}
+
+#info-version {
+    width: 100%;
+
+    margin-bottom: 20px;
+
+    font-size: 16px;
+    color: #a8a8a8;
+}
+
+#info-description {
+    width: 100%;
+
+    margin-bottom: 30px;
+
+    font-size: 16px;
+    color: #b9b9b9;
+}
+
+#third-party-title {
+    width: 100%;
+
+    margin-bottom: 12px;
+
+    font-size: 18px;
+    color: #ff9800;
+}
+
+.third-party-row {
+    width: 100%;
+    height: 36px;
+
+    display: flex;
+    flex-direction: row;
+
+    align-items: center;
+}
+
+.third-party-name {
+    width: 220px;
+
+    flex: none;
+
+    white-space: nowrap;
+
+    font-size: 18px;
+    color: #e8e8e8;
+}
+
+.third-party-version {
+    width: 120px;
+
+    flex: none;
+
+    white-space: nowrap;
+
+    font-size: 16px;
+    color: #9a9a9a;
+}
+
+.third-party-license {
+    width: 340px;
+
+    flex: none;
+
+    white-space: nowrap;
+
+    font-size: 16px;
+    color: #b9b9b9;
+}
+
+=== info/info.rml ===
+<rml>
+
+    <head>
+        <title>Информация</title>
+
+        <link type="text/rcss" href="../common.rcss" />
+        <link type="text/rcss" href="info.rcss" />
+    </head>
+
+    <body>
+        <div class="page-title">
+            ИНФОРМАЦИЯ
+        </div>
+
+        <div class="page-header-line"></div>
+
+        <div id="info-content" class="page-content">
+            <div id="info-launcher-title">
+                WORLD FORGE ZERO LAUNCHER
+            </div>
+
+            <div id="info-version">
+                Версия лаунчера v<span id="info-launcher-version">0.0.1</span>
+            </div>
+
+            <div id="info-description">
+                Лаунчер для установки, обновления и запуска World Forge Zero.
+            </div>
+
+            <div id="third-party-title">
+                СТОРОННЕЕ ПО
+            </div>
+
+            <div class="third-party-row">
+                <div class="third-party-name">RmlUi</div>
+                <div class="third-party-version"></div>
+                <div class="third-party-license">MIT</div>
+            </div>
+
+            <div class="third-party-row">
+                <div class="third-party-name">GLFW</div>
+                <div class="third-party-version"></div>
+                <div class="third-party-license">zlib/libpng</div>
+            </div>
+
+            <div class="third-party-row">
+                <div class="third-party-name">FreeType</div>
+                <div class="third-party-version">2.13.3</div>
+                <div class="third-party-license">FTL/GPL-2.0</div>
+            </div>
+
+            <div class="third-party-row">
+                <div class="third-party-name">OpenSSL</div>
+                <div class="third-party-version">3.5.8</div>
+                <div class="third-party-license">Apache-2.0</div>
+            </div>
+
+            <div class="third-party-row">
+                <div class="third-party-name">cpp-httplib</div>
+                <div class="third-party-version"></div>
+                <div class="third-party-license">MIT</div>
+            </div>
+
+            <div class="third-party-row">
+                <div class="third-party-name">nlohmann/json</div>
+                <div class="third-party-version"></div>
+                <div class="third-party-license">MIT</div>
+            </div>
+
+            <div class="third-party-row">
+                <div class="third-party-name">Monocraft</div>
+                <div class="third-party-version">4.2.1</div>
+                <div class="third-party-license">OFL-1.1</div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <div class="footer-line"></div>
+
+            <button id="info-back" class="back-button">
+                <span class="button-label">НАЗАД</span>
+            </button>
+        </div>
+    </body>
+</rml>
+
+=== main/main.rcss ===
+#main-background {
+    position: absolute;
+
+    left: 0;
+    top: 0;
+
+    width: 100%;
+    height: 100%;
+
+    background-color: #181818;
+
+    decorator: linear-gradient(to bottom, #141414, #040404);
+}
+
+#main-title {
+    position: absolute;
+
+    left: 4%;
+    top: 30px;
+
+    font-size: 32px;
+    color: #e8e8e8;
+}
+
+#launcher-version {
+    position: absolute;
+
+    left: 4%;
+    top: 78px;
+
+    font-size: 16px;
+    color: #9a9a9a;
+}
+
+#main-navigation {
+    position: absolute;
+
+    right: 4%;
+    top: 25px;
+
+    width: 356px;
+    height: 44px;
+
+    display: flex;
+    flex-direction: row;
+
+    align-items: stretch;
+    justify-content: flex-end;
+}
+
+.navigation-button {
+    position: relative;
+
+    height: 44px;
+
+    margin-left: 12px;
+    padding: 0;
+
+    flex: none;
+
+    display: flex;
+    flex-direction: row;
+
+    align-items: center;
+    justify-content: center;
+
+    font-family: Monocraft;
+    font-size: 16px;
+
+    color: #e8e8e8;
+    background-color: #1c1c1c;
+
+    border-width: 1px;
+    border-color: #414141;
+    border-radius: 4px;
+}
+
+.navigation-button:hover {
+    background-color: #2a2a2a;
+    border-color: #ff9800;
+}
+
+.navigation-button:active {
+    background-color: #343434;
+}
+
+#open-info {
+    width: 44px;
+
+    margin-left: 0;
+
+    font-size: 18px;
+}
+
+#open-news {
+    width: 134px;
+}
+
+#open-settings {
+    width: 154px;
+}
+
+#launcher-control {
+    position: absolute;
+
+    left: 4%;
+    bottom: 32px;
+
+    width: 320px;
+    height: 54px;
+}
+
+#loading-status {
+    position: absolute;
+
+    left: 0;
+    bottom: 18px;
+
+    width: 100%;
+
+    font-size: 18px;
+    color: #e8e8e8;
+
+    opacity: 1;
+}
+
+#loading-progress {
+    position: absolute;
+
+    left: 0;
+    bottom: 0;
+
+    width: 320px;
+    height: 7px;
+
+    overflow: hidden;
+
+    background-color: #323232;
+
+    border-radius: 4px;
+}
+
+#loading-progress-value {
+    position: absolute;
+
+    left: 0;
+    top: 0;
+
+    width: 0%;
+    height: 100%;
+
+    background-color: #ff9800;
+
+    border-radius: 4px;
+}
+
+#play-morph-label {
+    position: absolute;
+
+    left: 0;
+    top: 16px;
+
+    width: 100%;
+
+    text-align: center;
+    white-space: nowrap;
+
+    font-size: 22px;
+    color: #0e0e0e;
+
+    opacity: 0;
+}
+
+#play-button {
+    display: none;
+
+    position: absolute;
+
+    left: 0;
+    bottom: 0;
+
+    width: 320px;
+    height: 54px;
+
+    padding: 0;
+
+    flex-direction: row;
+
+    align-items: center;
+    justify-content: center;
+
+    font-family: Monocraft;
+    font-size: 22px;
+
+    color: #0e0e0e;
+    background-color: #ff9800;
+
+    border-width: 1px;
+    border-color: #ff9800;
+    border-radius: 5px;
+}
+
+#play-button:hover {
+    background-color: #ffb74d;
+    border-color: #ffb74d;
+}
+
+#play-button:active {
+    background-color: #e68200;
+    border-color: #e68200;
+}
+
+=== main/main.rml ===
+<rml>
+
+    <head>
+        <title>World Forge Zero</title>
+
+        <link type="text/rcss" href="../common.rcss" />
+        <link type="text/rcss" href="main.rcss" />
+    </head>
+
+    <body>
+        <div id="main-background"></div>
+
+        <div id="main-title">
+            WORLD FORGE ZERO
+        </div>
+
+        <div id="launcher-version"> </div>
+
+        <div id="main-navigation">
+            <button id="open-info" class="navigation-button" title="Информация">
+                <span class="button-label">I</span>
+            </button>
+
+            <button id="open-news" class="navigation-button">
+                <span class="button-label">Новости</span>
+            </button>
+
+            <button id="open-settings" class="navigation-button">
+                <span class="button-label">Настройки</span>
+            </button>
+        </div>
+
+        <div id="launcher-control">
+            <div id="loading-status">
+                Загрузка...
+            </div>
+
+            <div id="loading-progress">
+                <div id="loading-progress-value"></div>
+
+                <div id="play-morph-label">
+                    ИГРАТЬ
+                </div>
+            </div>
+
+            <button id="play-button">
+                <span class="button-label">ИГРАТЬ</span>
+            </button>
+        </div>
+    </body>
+</rml>
+
+=== news/news.rcss ===
+#news-tabs {
+    position: absolute;
+
+    left: 4%;
+    top: 72px;
+
+    width: 328px;
+    height: 42px;
+
+    display: flex;
+    flex-direction: row;
+
+    align-items: stretch;
+}
+
+.news-tab {
+    position: relative;
+
+    width: 160px;
+    height: 42px;
+
+    margin-right: 8px;
+    padding: 0;
+
+    flex: none;
+
+    display: flex;
+    flex-direction: row;
+
+    align-items: center;
+    justify-content: center;
+
+    font-family: Monocraft;
+    font-size: 17px;
+
+    color: #b9b9b9;
+    background-color: transparent;
+
+    border-width: 0;
+    border-radius: 4px;
+}
+
+.news-tab:hover {
+    background-color: #1c1c1c;
+    color: #e8e8e8;
+}
+
+.news-tab.active {
+    background-color: #1c1c1c;
+    color: #e8e8e8;
+
+    border-bottom-width: 2px;
+    border-bottom-color: #ff9800;
+}
+
+.unread-dot {
+    position: absolute;
+
+    right: 9px;
+    top: 8px;
+
+    width: 7px;
+    height: 7px;
+
+    background-color: #ff9800;
+
+    border-radius: 4px;
+}
+
+#news-header-line {
+    position: absolute;
+
+    left: 4%;
+    top: 122px;
+
+    width: 92%;
+    height: 1px;
+
+    background-color: #414141;
+}
+
+#news-content {
+    top: 136px;
+    bottom: 76px;
+}
+
+#news-status {
+    width: 100%;
+
+    margin-top: 100px;
+
+    text-align: center;
+
+    font-size: 18px;
+    color: #9a9a9a;
+}
+
+#news-list {
+    display: none;
+
+    width: 100%;
+}
+
+.news-day {
+    width: 100%;
+
+    margin-bottom: 26px;
+}
+
+.news-date {
+    padding-bottom: 10px;
+
+    font-size: 19px;
+    color: #e8e8e8;
+
+    border-bottom-width: 1px;
+    border-bottom-color: #414141;
+}
+
+.news-day.unread .news-date {
+    border-bottom-color: #ff9800;
+}
+
+.news-author {
+    margin-top: 14px;
+    margin-bottom: 12px;
+}
+
+.news-author-name {
+    margin-bottom: 10px;
+
+    font-size: 18px;
+    color: #e8e8e8;
+}
+
+.news-item {
+    width: 100%;
+    min-height: 26px;
+
+    margin-bottom: 8px;
+
+    display: flex;
+    flex-direction: row;
+
+    align-items: flex-start;
+}
+
+.news-kind {
+    width: 52px;
+    height: 24px;
+
+    margin-right: 12px;
+
+    flex: none;
+
+    text-align: center;
+
+    font-size: 14px;
+    line-height: 24px;
+
+    color: #ff9800;
+    background-color: #1c1c1c;
+
+    border-width: 1px;
+    border-color: #414141;
+    border-radius: 3px;
+}
+
+.news-item-text {
+    flex: 1;
+
+    padding-top: 2px;
+
+    font-size: 16px;
+    color: #b9b9b9;
+}
+
+=== news/news.rml ===
+<rml>
+
+    <head>
+        <title>Новости</title>
+
+        <link type="text/rcss" href="../common.rcss" />
+        <link type="text/rcss" href="news.rcss" />
+    </head>
+
+    <body>
+        <div class="page-title">
+            НОВОСТИ
+        </div>
+
+        <div id="news-tabs">
+            <button id="news-tab-launcher" class="news-tab active">
+                <span class="button-label">ЛАУНЧЕР</span>
+                <span id="news-unread-launcher" class="unread-dot"></span>
+            </button>
+
+            <button id="news-tab-game" class="news-tab">
+                <span class="button-label">ИГРА</span>
+                <span id="news-unread-game" class="unread-dot"></span>
+            </button>
+        </div>
+
+        <div id="news-header-line"></div>
+
+        <div id="news-content" class="page-content">
+            <div id="news-status">
+                ОЖИДАНИЕ НОВОСТЕЙ...
+            </div>
+
+            <div id="news-list"></div>
+        </div>
+
+        <div class="footer">
+            <div class="footer-line"></div>
+
+            <button id="news-back" class="back-button">
+                <span class="button-label">НАЗАД</span>
+            </button>
+        </div>
+    </body>
+</rml>
+
+=== settings/settings.rcss ===
+#settings-search {
+    position: absolute;
+
+    left: 4%;
+    top: 72px;
+
+    width: 88%;
+    height: 44px;
+
+    padding-left: 2%;
+    padding-right: 2%;
+
+    font-family: Monocraft;
+    font-size: 16px;
+
+    color: #e8e8e8;
+    background-color: #1c1c1c;
+
+    border-width: 1px;
+    border-color: #414141;
+    border-radius: 4px;
+}
+
+#settings-search:hover,
+#settings-search:focus {
+    background-color: #252525;
+    border-color: #ff9800;
+}
+
+.page-header-line {
+    top: 128px;
+}
+
+#settings-content {
+    top: 142px;
+    bottom: 76px;
+}
+
+.settings-panel {
+    width: 100%;
+
+    margin-bottom: 18px;
+
+    padding-top: 12px;
+    padding-bottom: 10px;
+
+    background-color: #181818;
+
+    border-width: 1px;
+    border-color: #3c3c3c;
+    border-radius: 5px;
+}
+
+.settings-panel-title {
+    width: 94%;
+
+    margin-left: 16px;
+    margin-bottom: 10px;
+
+    font-size: 20px;
+    color: #e8e8e8;
+}
+
+.settings-panel-line {
+    width: 94%;
+    height: 1px;
+
+    margin-left: 16px;
+    margin-bottom: 6px;
+
+    background-color: #414141;
+}
+
+.setting-row {
+    width: 100%;
+    min-height: 62px;
+
+    display: flex;
+    flex-direction: row;
+
+    align-items: center;
+}
+
+.setting-row:hover {
+    background-color: #222222;
+}
+
+.setting-text {
+    width: 650px;
+
+    flex: none;
+
+    padding-left: 16px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+.setting-title {
+    width: 100%;
+
+    margin-bottom: 6px;
+
+    font-size: 18px;
+    color: #e8e8e8;
+}
+
+.setting-description {
+    width: 100%;
+
+    font-size: 15px;
+    color: #a8a8a8;
+}
+
+.setting-toggle {
+    width: 24px;
+    height: 24px;
+
+    margin-left: 16px;
+
+    flex: none;
+}
+
+#settings-empty {
+    display: none;
+
+    width: 100%;
+
+    margin-top: 20px;
+
+    text-align: center;
+
+    font-size: 18px;
+    color: #9a9a9a;
+}
+
+#settings-back {
+    left: auto;
+    right: 0;
+}
+
+=== settings/settings.rml ===
+<rml>
+
+    <head>
+        <title>Настройки</title>
+
+        <link type="text/rcss" href="../common.rcss" />
+        <link type="text/rcss" href="settings.rcss" />
+    </head>
+
+    <body>
+        <div class="page-title">
+            НАСТРОЙКИ
+        </div>
+
+        <input id="settings-search" type="text" placeholder="Поиск..." />
+
+        <div class="page-header-line"></div>
+
+        <div id="settings-content" class="page-content">
+
+            <div class="settings-panel" id="settings-news">
+                <div class="settings-panel-title">
+                    НОВОСТИ
+                </div>
+
+                <div class="settings-panel-line"></div>
+
+                <label class="setting-row">
+                    <div class="setting-text">
+                        <div class="setting-title">
+                            Новости лаунчера
+                        </div>
+
+                        <div class="setting-description">
+                            Получать новости и обновления лаунчера
+                        </div>
+                    </div>
+
+                    <input id="setting-load-launcher-news" class="setting-toggle" type="checkbox" />
+                </label>
+
+                <label class="setting-row">
+                    <div class="setting-text">
+                        <div class="setting-title">
+                            Новости игры
+                        </div>
+
+                        <div class="setting-description">
+                            Получать новости World Forge Zero
+                        </div>
+                    </div>
+
+                    <input id="setting-load-game-news" class="setting-toggle" type="checkbox" />
+                </label>
+            </div>
+
+            <div class="settings-panel" id="settings-behavior">
+                <div class="settings-panel-title">
+                    ПОВЕДЕНИЕ
+                </div>
+
+                <div class="settings-panel-line"></div>
+
+                <label class="setting-row">
+                    <div class="setting-text">
+                        <div class="setting-title">
+                            Запуск после обновления
+                        </div>
+
+                        <div class="setting-description">
+                            Сразу запускать игру после завершения обновления
+                        </div>
+                    </div>
+
+                    <input id="setting-launch-after-update" class="setting-toggle" type="checkbox" />
+                </label>
+
+                <label class="setting-row">
+                    <div class="setting-text">
+                        <div class="setting-title">
+                            Обновления лаунчера
+                        </div>
+
+                        <div class="setting-description">
+                            Проверять наличие обновлений лаунчера при запуске
+                        </div>
+                    </div>
+
+                    <input id="setting-check-launcher-updates" class="setting-toggle" type="checkbox" />
+                </label>
+
+                <label class="setting-row">
+                    <div class="setting-text">
+                        <div class="setting-title">
+                            Авто обновление лаунчера
+                        </div>
+
+                        <div class="setting-description">
+                            Автоматически пытаться обновить лаунчер при доступной новой версии
+                        </div>
+                    </div>
+
+                    <input id="setting-launcher-auto-update" class="setting-toggle" type="checkbox" />
+                </label>
+            </div>
+
+            <div class="settings-panel" id="settings-advanced">
+                <div class="settings-panel-title">
+                    РАСШИРЕННЫЕ
+                </div>
+
+                <div class="settings-panel-line"></div>
+
+                <label class="setting-row">
+                    <div class="setting-text">
+                        <div class="setting-title">
+                            Dev режим
+                        </div>
+
+                        <div class="setting-description">
+                            Включает функции для разработки. Если вы не знаете,
+                            зачем он нужен - он вам не нужен.
+                        </div>
+                    </div>
+
+                    <input id="setting-dev-mode" class="setting-toggle" type="checkbox" />
+                </label>
+
+                <label class="setting-row">
+                    <div class="setting-text">
+                        <div class="setting-title">
+                            Admin режим
+                        </div>
+
+                        <div class="setting-description">
+                            Отключает некоторые ограничения интерфейса лаунчера.
+                            Реальных прав не предоставляет.
+                        </div>
+                    </div>
+
+                    <input id="setting-admin-bypass" class="setting-toggle" type="checkbox" />
+                </label>
+            </div>
+
+            <div id="settings-empty">
+                Ничего не найдено
+            </div>
+        </div>
+
+        <div class="footer">
+            <div class="footer-line"></div>
+
+            <button id="settings-back" class="back-button">
+                <span class="button-label">НАЗАД</span>
+            </button>
+        </div>
+    </body>
+</rml>

@@ -14,9 +14,10 @@
 
         <input id="settings-search" type="text" placeholder="Поиск..." />
 
-        <div class="header-line"></div>
+        <div class="page-header-line"></div>
 
-        <div id="settings-content">
+        <div id="settings-content" class="page-content">
+
             <div class="settings-panel" id="settings-news">
                 <div class="settings-panel-title">
                     НОВОСТИ
@@ -35,7 +36,7 @@
                         </div>
                     </div>
 
-                    <input id="setting-load-launcher-news" type="checkbox" />
+                    <input id="setting-load-launcher-news" class="setting-toggle" type="checkbox" />
                 </label>
 
                 <label class="setting-row">
@@ -49,7 +50,7 @@
                         </div>
                     </div>
 
-                    <input id="setting-load-game-news" type="checkbox" />
+                    <input id="setting-load-game-news" class="setting-toggle" type="checkbox" />
                 </label>
             </div>
 
@@ -71,7 +72,7 @@
                         </div>
                     </div>
 
-                    <input id="setting-launch-after-update" type="checkbox" />
+                    <input id="setting-launch-after-update" class="setting-toggle" type="checkbox" />
                 </label>
 
                 <label class="setting-row">
@@ -85,7 +86,7 @@
                         </div>
                     </div>
 
-                    <input id="setting-check-launcher-updates" type="checkbox" />
+                    <input id="setting-check-launcher-updates" class="setting-toggle" type="checkbox" />
                 </label>
 
                 <label class="setting-row">
@@ -99,7 +100,7 @@
                         </div>
                     </div>
 
-                    <input id="setting-launcher-auto-update" type="checkbox" />
+                    <input id="setting-launcher-auto-update" class="setting-toggle" type="checkbox" />
                 </label>
             </div>
 
@@ -122,7 +123,7 @@
                         </div>
                     </div>
 
-                    <input id="setting-dev-mode" type="checkbox" />
+                    <input id="setting-dev-mode" class="setting-toggle" type="checkbox" />
                 </label>
 
                 <label class="setting-row">
@@ -137,7 +138,7 @@
                         </div>
                     </div>
 
-                    <input id="setting-admin-bypass" type="checkbox" />
+                    <input id="setting-admin-bypass" class="setting-toggle" type="checkbox" />
                 </label>
             </div>
 
@@ -147,8 +148,10 @@
         </div>
 
         <div class="footer">
+            <div class="footer-line"></div>
+
             <button id="settings-back" class="back-button">
-                НАЗАД
+                <span class="button-label">НАЗАД</span>
             </button>
         </div>
     </body>
