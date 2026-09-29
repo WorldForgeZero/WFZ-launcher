@@ -2,6 +2,8 @@
 
 #include <RmlUi/Core.h>
 
+#include "app/loading_state.h"
+
 #include "etc/logger.h"
 
 #include "ui/info/info_screen.h"
@@ -39,8 +41,7 @@ namespace wfz::ui
                 g_info_document->Hide();
         }
 
-        void ShowScreen(
-            const Screen screen)
+        void ShowScreen(const Screen screen)
         {
             HideAllDocuments();
 
@@ -72,92 +73,66 @@ namespace wfz::ui
             }
         }
 
-        class NavigationListener final
-            : public Rml::EventListener
+        class NavigationListener final : public Rml::EventListener
         {
         public:
             void ProcessEvent(
                 Rml::Event &event) override
             {
-                Rml::Element *element =
-                    event.GetCurrentElement();
+                Rml::Element *element = event.GetCurrentElement();
 
                 if (!element)
                     return;
 
-                const Rml::String &id =
-                    element->GetId();
+                const Rml::String &id = element->GetId();
 
                 if (id == "open-settings")
                 {
-                    ShowScreen(
-                        Screen::Settings);
-
+                    ShowScreen(Screen::Settings);
                     return;
                 }
 
                 if (id == "open-news")
                 {
-                    ShowScreen(
-                        Screen::News);
-
+                    ShowScreen(Screen::News);
                     return;
                 }
 
                 if (id == "open-info")
                 {
-                    ShowScreen(
-                        Screen::Info);
-
+                    ShowScreen(Screen::Info);
                     return;
                 }
 
-                if (id == "settings-back" ||
-                    id == "news-back" ||
-                    id == "info-back")
-                {
-                    ShowScreen(
-                        Screen::Main);
-                }
+                if (id == "settings-back" || id == "news-back" || id == "info-back")
+                    ShowScreen(Screen::Main);
             }
         };
 
-        NavigationListener
-            g_navigation_listener;
+        NavigationListener g_navigation_listener;
 
-        Rml::ElementDocument *LoadDocument(
-            Rml::Context *context,
-            const char *path)
+        Rml::ElementDocument *LoadDocument(Rml::Context *context, const char *path)
         {
-            Rml::ElementDocument *document =
-                context->LoadDocument(path);
+            Rml::ElementDocument *document = context->LoadDocument(path);
 
             if (!document)
             {
-                wfz::logger::Error(
-                    "Failed to load RmlUi document: %s",
-                    path);
+                wfz::logger::Error("Failed to load RmlUi document: %s", path);
             }
 
             return document;
         }
 
-        bool BindNavigation(
-            Rml::ElementDocument *document,
-            const char *element_id)
+        bool BindNavigation(Rml::ElementDocument *document, const char *element_id)
         {
             if (!document)
                 return false;
 
-            Rml::Element *element =
-                document->GetElementById(
-                    element_id);
+            Rml::Element *element = document->GetElementById(element_id);
 
             if (!element)
             {
-                wfz::logger::Error(
-                    "Failed to find RmlUi element: %s",
-                    element_id);
+                wfz::logger::Error("Failed to find RmlUi element: %s", element_id);
 
                 return false;
             }
@@ -185,34 +160,17 @@ namespace wfz::ui
         if (!context)
             return false;
 
-        if (!Rml::LoadFontFace(
-                "assets/fonts/Monocraft.ttf"))
+        if (!Rml::LoadFontFace("assets/fonts/Monocraft.ttf"))
         {
-            wfz::logger::Error(
-                "Failed to load main font");
-
+            wfz::logger::Error("Failed to load main font");
             return false;
         }
 
-        g_main_document =
-            LoadDocument(
-                context,
-                "assets/ui/main/main.rml");
+        g_main_document = LoadDocument(context, "assets/ui/main/main.rml");
+        g_settings_document = LoadDocument(context, "assets/ui/settings/settings.rml");
+        g_news_document = LoadDocument(context, "assets/ui/news/news.rml");
 
-        g_settings_document =
-            LoadDocument(
-                context,
-                "assets/ui/settings/settings.rml");
-
-        g_news_document =
-            LoadDocument(
-                context,
-                "assets/ui/news/news.rml");
-
-        g_info_document =
-            LoadDocument(
-                context,
-                "assets/ui/info/info.rml");
+        g_info_document = LoadDocument(context, "assets/ui/info/info.rml");
 
         if (!g_main_document ||
             !g_settings_document ||
@@ -255,6 +213,11 @@ namespace wfz::ui
         }
 
         ShowScreen(Screen::Main);
+
+        // TODO: REMOVE BEFORE MERGE
+        wfz::loading_state::SetStatus("Лаунчер готов");
+        wfz::loading_state::SetProgress(1.0f);
+        wfz::loading_state::SetReady(true);
 
         return true;
     }

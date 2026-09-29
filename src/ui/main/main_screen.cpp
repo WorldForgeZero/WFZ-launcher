@@ -80,6 +80,7 @@ namespace
         g_progress_value->SetProperty("display", "block");
         g_morph_label->SetProperty("opacity", "0");
         g_play_button->SetProperty("display", "none");
+        g_play_button->SetProperty("opacity", "0");
     }
 }
 
@@ -97,13 +98,17 @@ namespace wfz::ui::main_screen
         g_morph_label = RequireElement(document, "play-morph-label");
         g_play_button = RequireElement(document, "play-button");
 
-        if (!g_version || !g_status || !g_progress || !g_progress_value || !g_morph_label || !g_play_button)
+        if (!g_version ||
+            !g_status ||
+            !g_progress ||
+            !g_progress_value ||
+            !g_morph_label ||
+            !g_play_button)
         {
             return false;
         }
 
         g_version->SetInnerRML(std::string("Лаунчер v") + launcher_version);
-
         g_last_status.clear();
 
         loading::SetDisplayProgress(0.0f);
@@ -120,7 +125,6 @@ namespace wfz::ui::main_screen
             return;
 
         const std::string status = loading::GetStatus();
-
         if (status != g_last_status)
         {
             g_status->SetInnerRML(status);
@@ -128,21 +132,19 @@ namespace wfz::ui::main_screen
         }
 
         const float current_progress = loading::GetDisplayProgress();
-
         const float target_progress = loading::GetProgress();
-
         const float smoothing = Clamp01(delta_time * 8.0f);
-
         const float displayed_progress = Lerp(current_progress, target_progress, smoothing);
 
         loading::SetDisplayProgress(displayed_progress);
-
         g_progress_value->SetProperty("width", ToPercent(displayed_progress * 100.0f));
 
         if (!loading::GetReady())
         {
             loading::SetReadyTime(0.0f);
+
             ResetLoadingVisuals();
+
             return;
         }
 
@@ -151,32 +153,37 @@ namespace wfz::ui::main_screen
         loading::SetReadyTime(ready_time);
 
         constexpr float morph_duration = 0.32f;
-
         constexpr float status_fade_duration = 0.28f;
-
         const float status_alpha = 1.0f - Clamp01(ready_time / status_fade_duration);
 
         g_status->SetProperty("opacity", ToNumber(status_alpha));
 
         const float morph = EaseOutCubic(ready_time / morph_duration);
-
         const float current_height = Lerp(7.0f, 54.0f, morph);
 
         g_progress->SetProperty("height", ToPixels(current_height));
-
         g_progress->SetProperty("background-color", "#ff9800");
-
         g_progress_value->SetProperty("display", "none");
 
-        const float text_alpha = Clamp01((morph - 0.35f) / 0.65f);
+        const float morph_text_alpha = Clamp01((morph - 0.35f) / 0.45f);
+        constexpr float button_fade_start = 0.75f;
+        const float button_alpha = Clamp01((morph - button_fade_start) / (1.0f - button_fade_start));
+        const float morph_label_alpha = morph_text_alpha * (1.0f - button_alpha);
 
-        g_morph_label->SetProperty("opacity", ToNumber(text_alpha));
+        g_morph_label->SetProperty("opacity", ToNumber(morph_label_alpha));
+
+        if (button_alpha > 0.0f)
+        {
+            g_play_button->SetProperty("display", "flex");
+            g_play_button->SetProperty("opacity", ToNumber(button_alpha));
+        }
 
         if (morph >= 1.0f)
         {
             g_progress->SetProperty("display", "none");
-
+            g_morph_label->SetProperty("opacity", "0");
             g_play_button->SetProperty("display", "flex");
+            g_play_button->SetProperty("opacity", "1");
         }
     }
 

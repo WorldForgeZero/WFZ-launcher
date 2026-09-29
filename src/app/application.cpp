@@ -9,8 +9,6 @@
 #include "app/thread_manager.h"
 #include "app/window_icon.h"
 
-#include "daemon/bootstrap.h"
-
 #include "etc/logger.h"
 #include "etc/self_update.h"
 
@@ -131,7 +129,7 @@ namespace wfz::app
 
             void StartDaemon()
             {
-                ThreadManager::instance().submit(RunDaemonBootstrap);
+                // ThreadManager::instance().submit(TODO:);
 
                 daemon_started_ = true;
             }
