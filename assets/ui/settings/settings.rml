@@ -3,6 +3,7 @@
     <head>
         <title>Настройки</title>
 
+        <link type="text/rcss" href="../base.rcss" />
         <link type="text/rcss" href="../common.rcss" />
         <link type="text/rcss" href="settings.rcss" />
     </head>

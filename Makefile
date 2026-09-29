@@ -22,6 +22,7 @@ MAKEFILE_FILE := $(lastword $(MAKEFILE_LIST))
 RUNTIME_ASSETS := \
 	$(ASSETS_DIR)/fonts/Monocraft.ttf \
 	$(ASSETS_DIR)/icon/window_icon.tga \
+	$(ASSETS_DIR)/ui/base.rcss \
 	$(ASSETS_DIR)/ui/common.rcss \
 	$(ASSETS_DIR)/ui/info/info.rcss \
 	$(ASSETS_DIR)/ui/info/info.rml \

@@ -3,6 +3,7 @@
     <head>
         <title>Информация</title>
 
+        <link type="text/rcss" href="../base.rcss" />
         <link type="text/rcss" href="../common.rcss" />
         <link type="text/rcss" href="info.rcss" />
     </head>

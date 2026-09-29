@@ -3,6 +3,7 @@
     <head>
         <title>Новости</title>
 
+        <link type="text/rcss" href="../base.rcss" />
         <link type="text/rcss" href="../common.rcss" />
         <link type="text/rcss" href="news.rcss" />
     </head>

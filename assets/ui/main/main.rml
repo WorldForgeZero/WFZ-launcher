@@ -3,6 +3,7 @@
     <head>
         <title>World Forge Zero</title>
 
+        <link type="text/rcss" href="../base.rcss" />
         <link type="text/rcss" href="../common.rcss" />
         <link type="text/rcss" href="main.rcss" />
     </head>
