@@ -8,6 +8,7 @@
 
 #include "ui/info/info_screen.h"
 #include "ui/main/main_screen.h"
+#include "ui/settings/settings_screen.h"
 
 namespace wfz::ui
 {
@@ -197,6 +198,14 @@ namespace wfz::ui
             return false;
         }
 
+        if (!settings_screen::Init(g_settings_document))
+        {
+            wfz::logger::Error("Failed to initialize settings UI screen");
+
+            Shutdown();
+            return false;
+        }
+
         const bool navigation_ok =
             BindNavigation(g_main_document, "open-settings") &&
             BindNavigation(g_main_document, "open-news") &&
@@ -231,6 +240,7 @@ namespace wfz::ui
     {
         main_screen::Shutdown();
         info_screen::Shutdown();
+        settings_screen::Shutdown();
 
         CloseDocument(g_main_document);
         CloseDocument(g_settings_document);
