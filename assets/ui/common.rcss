@@ -1,0 +1,153 @@
+body {
+    width: 100%;
+    height: 100%;
+
+    margin: 0;
+    padding: 0;
+
+    overflow: hidden;
+
+    font-family: Monocraft;
+
+    background-color: #0e0e0e;
+    color: #e8e8e8;
+}
+
+button,
+input {
+    font-family: Monocraft;
+}
+
+.page-title {
+    position: absolute;
+
+    left: 4%;
+    top: 28px;
+
+    width: 92%;
+
+    font-size: 28px;
+    color: #e8e8e8;
+}
+
+.page-header-line {
+    position: absolute;
+
+    left: 4%;
+
+    width: 92%;
+    height: 2px;
+
+    background-color: #ff9800;
+}
+
+.page-content {
+    position: absolute;
+
+    left: 4%;
+
+    width: 92%;
+
+    box-sizing: border-box;
+
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.footer {
+    position: absolute;
+
+    left: 4%;
+    bottom: 14px;
+
+    width: 92%;
+    height: 62px;
+}
+
+.footer-line {
+    width: 100%;
+    height: 1px;
+
+    background-color: #3a3a3a;
+}
+
+.back-button {
+    position: absolute;
+
+    left: 0;
+    bottom: 0;
+
+    width: 142px;
+    height: 48px;
+
+    padding: 0;
+
+    display: flex;
+    flex-direction: row;
+
+    align-items: center;
+    justify-content: center;
+
+    font-size: 18px;
+
+    color: #e8e8e8;
+    background-color: #171717;
+
+    border-width: 1px;
+    border-color: #484848;
+    border-radius: 3px;
+}
+
+.back-button:hover {
+    background-color: #202020;
+    border-color: #ff9800;
+}
+
+.back-button:active {
+    background-color: #282828;
+}
+
+.button-label {
+    display: block;
+
+    white-space: nowrap;
+}
+
+/* Vertical scrollbar */
+
+scrollbarvertical {
+    width: 10px;
+
+    background-color: #121212;
+}
+
+scrollbarvertical sliderarrowdec,
+scrollbarvertical sliderarrowinc {
+    width: 0;
+    height: 0;
+}
+
+scrollbarvertical slidertrack {
+    width: 10px;
+
+    background-color: #181818;
+}
+
+scrollbarvertical sliderbar {
+    width: 8px;
+    min-height: 28px;
+
+    margin-left: 1px;
+
+    background-color: #4a4a4a;
+
+    border-radius: 4px;
+}
+
+scrollbarvertical sliderbar:hover {
+    background-color: #686868;
+}
+
+scrollbarvertical sliderbar:active {
+    background-color: #ff9800;
+}

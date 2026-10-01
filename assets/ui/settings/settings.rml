@@ -1,0 +1,30 @@
+<rml>
+
+    <head>
+        <title>Настройки</title>
+
+        <link type="text/rcss" href="../base.rcss" />
+        <link type="text/rcss" href="../common.rcss" />
+        <link type="text/rcss" href="settings.rcss" />
+    </head>
+
+    <body>
+        <div class="page-title">
+            НАСТРОЙКИ
+        </div>
+
+        <input id="settings-search" type="text" placeholder="Поиск..." />
+
+        <div class="page-header-line"></div>
+
+        <div id="settings-content" class="page-content"></div>
+
+        <div class="footer">
+            <div class="footer-line"></div>
+
+            <button id="settings-back" class="back-button">
+                <span class="button-label">НАЗАД</span>
+            </button>
+        </div>
+    </body>
+</rml>

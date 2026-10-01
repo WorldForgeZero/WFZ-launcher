@@ -3,34 +3,89 @@ MAKEFLAGS += -j$(shell nproc 2>/dev/null || echo 4)
 # Compilers
 CXX := g++
 WIN_CXX := x86_64-w64-mingw32-g++
-
-LD := ld
-WIN_LD := x86_64-w64-mingw32-ld
 WIN_WINDRES := x86_64-w64-mingw32-windres
+PYTHON ?= python3
 
-# Directories
-SRC_DIR := src
-BUILD_DIR := build
-DIST_DIR := dist
-
-# Targets
+# Project
 TARGET := wfz_launcher
 WIN_TARGET := wfz_launcher.exe
 
-# Assets
-FONT_FILE := assets/fonts/Monocraft.ttf
-ICON_PNG_FILE := assets/icon/icon.png
-ICON_ICO_FILE := assets/icon/icon.ico
+SRC_DIR := src
+BUILD_DIR := build
+DIST_DIR := dist
+ASSETS_DIR := assets
+TOOLS_DIR := tools
+
+MAKEFILE_FILE := $(lastword $(MAKEFILE_LIST))
+
+# Runtime assets
+RUNTIME_ASSETS := \
+	$(ASSETS_DIR)/fonts/Monocraft.ttf \
+	$(ASSETS_DIR)/icon/window_icon.tga \
+	$(ASSETS_DIR)/ui/base.rcss \
+	$(ASSETS_DIR)/ui/common.rcss \
+	$(ASSETS_DIR)/ui/info/info.rcss \
+	$(ASSETS_DIR)/ui/info/info.rml \
+	$(ASSETS_DIR)/ui/main/main.rcss \
+	$(ASSETS_DIR)/ui/main/main.rml \
+	$(ASSETS_DIR)/ui/news/news.rcss \
+	$(ASSETS_DIR)/ui/news/news.rml \
+	$(ASSETS_DIR)/ui/settings/settings.rcss \
+	$(ASSETS_DIR)/ui/settings/settings.rml
+
+# Embedded resources
+RESOURCE_EMBED_SCRIPT := \
+	$(TOOLS_DIR)/embed_resources.py
+
+GENERATED_RESOURCE_INC := \
+	$(BUILD_DIR)/generated/embedded_resources.inc
+
+EMBEDDED_ASSETS := \
+	$(RUNTIME_ASSETS)
+
+RESOURCE_RELEASE_OBJ := \
+	$(BUILD_DIR)/release/$(SRC_DIR)/resources/embedded_resources.o
+
+RESOURCE_WIN_RELEASE_OBJ := \
+	$(BUILD_DIR)/win-release/$(SRC_DIR)/resources/embedded_resources.o
+
+# Windows resources
+ICON_ICO_FILE := $(ASSETS_DIR)/icon/icon.ico
+
+WIN_ICON_RC := \
+	$(BUILD_DIR)/windows/wfz_icon.rc
+
+WIN_DEBUG_EXE_ICON_OBJ := \
+	$(BUILD_DIR)/win-debug/embedded/wfz_exe_icon.o
+
+WIN_RELEASE_EXE_ICON_OBJ := \
+	$(BUILD_DIR)/win-release/embedded/wfz_exe_icon.o
 
 # Third-party dependencies
-RAYLIB_ROOT := third_party/raylib/linux_amd64
+RMLUI_ROOT := third_party/rmlui/linux_amd64
+FREETYPE_ROOT := third_party/freetype/linux_amd64
+GLFW_ROOT := third_party/glfw/linux_amd64
 OPENSSL_ROOT := third_party/openssl/linux_amd64
 
-WIN_RAYLIB_ROOT := third_party/raylib/win64_mingw
+WIN_RMLUI_ROOT := third_party/rmlui/win64_mingw
+WIN_FREETYPE_ROOT := third_party/freetype/win64_mingw
+WIN_GLFW_ROOT := third_party/glfw/win64_mingw
 WIN_OPENSSL_ROOT := third_party/openssl/win64_mingw
 
+RMLUI_BACKEND_DIR := third_party/rmlui/backend
+
 # Sources
-CPP_SOURCES := $(shell find $(SRC_DIR) -type f -name '*.cpp' -print)
+PROJECT_SOURCES := \
+	$(shell find $(SRC_DIR) -type f -name '*.cpp' -print)
+
+RMLUI_BACKEND_SOURCES := \
+	$(RMLUI_BACKEND_DIR)/RmlUi_Backend_GLFW_GL3.cpp \
+	$(RMLUI_BACKEND_DIR)/RmlUi_Platform_GLFW.cpp \
+	$(RMLUI_BACKEND_DIR)/RmlUi_Renderer_GL3.cpp
+
+CPP_SOURCES := \
+	$(PROJECT_SOURCES) \
+	$(RMLUI_BACKEND_SOURCES)
 
 # Objects
 DEBUG_OBJS := \
@@ -45,40 +100,24 @@ WIN_DEBUG_OBJS := \
 WIN_RELEASE_OBJS := \
 	$(patsubst %.cpp,$(BUILD_DIR)/win-release/%.o,$(CPP_SOURCES))
 
-# Embedded Linux assets
-RELEASE_FONT_OBJ := \
-	$(BUILD_DIR)/release/embedded/monocraft_font.o
-
-RELEASE_ICON_OBJ := \
-	$(BUILD_DIR)/release/embedded/icon_png.o
-
-# Embedded Windows assets
-WIN_RELEASE_FONT_OBJ := \
-	$(BUILD_DIR)/win-release/embedded/monocraft_font.o
-
-WIN_RELEASE_ICON_OBJ := \
-	$(BUILD_DIR)/win-release/embedded/icon_png.o
-
-# Windows executable icon resource
-WIN_ICON_RC := \
-	$(BUILD_DIR)/windows/wfz_icon.rc
-
-WIN_DEBUG_EXE_ICON_OBJ := \
-	$(BUILD_DIR)/win-debug/embedded/wfz_exe_icon.o
-
-WIN_RELEASE_EXE_ICON_OBJ := \
-	$(BUILD_DIR)/win-release/embedded/wfz_exe_icon.o
-
 # Includes
 INCLUDES := \
 	-I$(SRC_DIR) \
-	-I$(RAYLIB_ROOT)/include \
+	-I$(BUILD_DIR) \
+	-I$(RMLUI_BACKEND_DIR) \
+	-I$(RMLUI_ROOT)/include \
+	-I$(FREETYPE_ROOT)/include/freetype2 \
+	-I$(GLFW_ROOT)/include \
 	-I$(OPENSSL_ROOT)/include \
 	-Ithird_party
 
 WIN_INCLUDES := \
 	-I$(SRC_DIR) \
-	-I$(WIN_RAYLIB_ROOT)/include \
+	-I$(BUILD_DIR) \
+	-I$(RMLUI_BACKEND_DIR) \
+	-I$(WIN_RMLUI_ROOT)/include \
+	-I$(WIN_FREETYPE_ROOT)/include/freetype2 \
+	-I$(WIN_GLFW_ROOT)/include \
 	-I$(WIN_OPENSSL_ROOT)/include \
 	-Ithird_party
 
@@ -88,6 +127,7 @@ COMMON_CXXFLAGS := \
 	-Wall \
 	-Wextra \
 	-pipe \
+	-DRMLUI_STATIC_LIB \
 	-DCPPHTTPLIB_OPENSSL_SUPPORT \
 	$(INCLUDES)
 
@@ -96,6 +136,7 @@ WIN_COMMON_CXXFLAGS := \
 	-Wall \
 	-Wextra \
 	-pipe \
+	-DRMLUI_STATIC_LIB \
 	-DCPPHTTPLIB_OPENSSL_SUPPORT \
 	$(WIN_INCLUDES)
 
@@ -113,9 +154,8 @@ WIN_DEBUG_CXXFLAGS := \
 # Release compiler flags
 RELEASE_CXXFLAGS := \
 	$(COMMON_CXXFLAGS) \
-	-DEMBEDDED_FONT \
-	-DEMBEDDED_ICON \
 	-DNDEBUG \
+	-DWFZ_EMBED_ASSETS \
 	-O3 \
 	-flto=auto \
 	-ffunction-sections \
@@ -123,9 +163,8 @@ RELEASE_CXXFLAGS := \
 
 WIN_RELEASE_CXXFLAGS := \
 	$(WIN_COMMON_CXXFLAGS) \
-	-DEMBEDDED_FONT \
-	-DEMBEDDED_ICON \
 	-DNDEBUG \
+	-DWFZ_EMBED_ASSETS \
 	-O3 \
 	-flto=auto \
 	-ffunction-sections \
@@ -133,19 +172,32 @@ WIN_RELEASE_CXXFLAGS := \
 
 # Linux linker flags
 BASE_LDFLAGS := \
-	$(RAYLIB_ROOT)/lib/libraylib.a \
+	$(RMLUI_ROOT)/lib/librmlui.a \
+	$(FREETYPE_ROOT)/lib/libfreetype.a \
+	$(GLFW_ROOT)/lib/libglfw3.a \
 	$(OPENSSL_ROOT)/lib/libssl.a \
 	$(OPENSSL_ROOT)/lib/libcrypto.a \
 	-lGL \
 	-lm \
 	-lpthread \
 	-ldl \
-	-lrt \
-	-lX11
+	-lrt
+
+DEBUG_LDFLAGS := \
+	$(BASE_LDFLAGS)
+
+RELEASE_LDFLAGS := \
+	$(BASE_LDFLAGS) \
+	-O3 \
+	-flto=auto \
+	-Wl,--gc-sections \
+	-s
 
 # Windows linker flags
 WIN_BASE_LDFLAGS := \
-	$(WIN_RAYLIB_ROOT)/lib/libraylib.a \
+	$(WIN_RMLUI_ROOT)/lib/librmlui.a \
+	$(WIN_FREETYPE_ROOT)/lib/libfreetype.a \
+	$(WIN_GLFW_ROOT)/lib/libglfw3.a \
 	$(WIN_OPENSSL_ROOT)/lib/libssl.a \
 	$(WIN_OPENSSL_ROOT)/lib/libcrypto.a \
 	-Wl,--defsym,stat64i32=_stat64 \
@@ -159,20 +211,8 @@ WIN_BASE_LDFLAGS := \
 	-static-libgcc \
 	-static-libstdc++
 
-# Debug linker flags
-DEBUG_LDFLAGS := \
-	$(BASE_LDFLAGS)
-
 WIN_DEBUG_LDFLAGS := \
 	$(WIN_BASE_LDFLAGS)
-
-# Release linker flags
-RELEASE_LDFLAGS := \
-	$(BASE_LDFLAGS) \
-	-O3 \
-	-flto=auto \
-	-Wl,--gc-sections \
-	-s
 
 WIN_RELEASE_LDFLAGS := \
 	$(WIN_BASE_LDFLAGS) \
@@ -182,7 +222,7 @@ WIN_RELEASE_LDFLAGS := \
 	-mwindows \
 	-s
 
-
+# Targets
 .PHONY: \
 	all \
 	debug \
@@ -199,12 +239,28 @@ WIN_RELEASE_LDFLAGS := \
 	clean \
 	clear
 
-
 all: debug
 
 clear: clean
 
-# Linux debug compilation
+# Embedded resources
+$(GENERATED_RESOURCE_INC): \
+	$(RESOURCE_EMBED_SCRIPT) \
+	$(MAKEFILE_FILE) \
+	$(EMBEDDED_ASSETS)
+	@mkdir -p $(@D)
+	$(PYTHON) \
+		$(RESOURCE_EMBED_SCRIPT) \
+		--output $@ \
+		$(EMBEDDED_ASSETS)
+
+$(RESOURCE_RELEASE_OBJ): \
+	$(GENERATED_RESOURCE_INC)
+
+$(RESOURCE_WIN_RELEASE_OBJ): \
+	$(GENERATED_RESOURCE_INC)
+
+# Linux compilation
 $(BUILD_DIR)/debug/%.o: %.cpp
 	@mkdir -p $(@D)
 	$(CXX) \
@@ -214,7 +270,6 @@ $(BUILD_DIR)/debug/%.o: %.cpp
 		-c $< \
 		-o $@
 
-# Linux release compilation
 $(BUILD_DIR)/release/%.o: %.cpp
 	@mkdir -p $(@D)
 	$(CXX) \
@@ -224,7 +279,7 @@ $(BUILD_DIR)/release/%.o: %.cpp
 		-c $< \
 		-o $@
 
-# Windows debug compilation
+# Windows compilation
 $(BUILD_DIR)/win-debug/%.o: %.cpp
 	@mkdir -p $(@D)
 	$(WIN_CXX) \
@@ -234,7 +289,6 @@ $(BUILD_DIR)/win-debug/%.o: %.cpp
 		-c $< \
 		-o $@
 
-# Windows release compilation
 $(BUILD_DIR)/win-release/%.o: %.cpp
 	@mkdir -p $(@D)
 	$(WIN_CXX) \
@@ -244,48 +298,11 @@ $(BUILD_DIR)/win-release/%.o: %.cpp
 		-c $< \
 		-o $@
 
-# Embedded Linux font
-$(RELEASE_FONT_OBJ): $(FONT_FILE)
-	@mkdir -p $(@D)
-	$(LD) \
-		-r \
-		-b binary \
-		$(FONT_FILE) \
-		-o $@
-
-# Embedded Linux window icon
-$(RELEASE_ICON_OBJ): $(ICON_PNG_FILE)
-	@mkdir -p $(@D)
-	$(LD) \
-		-r \
-		-b binary \
-		$(ICON_PNG_FILE) \
-		-o $@
-
-# Embedded Windows font
-$(WIN_RELEASE_FONT_OBJ): $(FONT_FILE)
-	@mkdir -p $(@D)
-	$(WIN_LD) \
-		-r \
-		-b binary \
-		$(FONT_FILE) \
-		-o $@
-
-# Embedded Windows window icon
-$(WIN_RELEASE_ICON_OBJ): $(ICON_PNG_FILE)
-	@mkdir -p $(@D)
-	$(WIN_LD) \
-		-r \
-		-b binary \
-		$(ICON_PNG_FILE) \
-		-o $@
-
-# Generate Windows executable icon resource script
+# Windows executable icon
 $(WIN_ICON_RC): $(ICON_ICO_FILE)
 	@mkdir -p $(@D)
 	@printf 'IDI_WFZ_ICON ICON "%s"\n' "$(abspath $(ICON_ICO_FILE))" > $@
 
-# Windows debug executable icon resource
 $(WIN_DEBUG_EXE_ICON_OBJ): $(WIN_ICON_RC) $(ICON_ICO_FILE)
 	@mkdir -p $(@D)
 	$(WIN_WINDRES) \
@@ -293,7 +310,6 @@ $(WIN_DEBUG_EXE_ICON_OBJ): $(WIN_ICON_RC) $(ICON_ICO_FILE)
 		-O coff \
 		-o $@
 
-# Windows release executable icon resource
 $(WIN_RELEASE_EXE_ICON_OBJ): $(WIN_ICON_RC) $(ICON_ICO_FILE)
 	@mkdir -p $(@D)
 	$(WIN_WINDRES) \
@@ -301,48 +317,34 @@ $(WIN_RELEASE_EXE_ICON_OBJ): $(WIN_ICON_RC) $(ICON_ICO_FILE)
 		-O coff \
 		-o $@
 
-# Linux debug linking
+# Linux linking
 debug: $(DEBUG_OBJS)
 	$(CXX) \
 		$(DEBUG_OBJS) \
 		$(DEBUG_LDFLAGS) \
 		-o $(TARGET)
 
-# Linux release linking
-release: \
-	$(RELEASE_OBJS) \
-	$(RELEASE_FONT_OBJ) \
-	$(RELEASE_ICON_OBJ)
-
+release: $(RELEASE_OBJS)
 	$(CXX) \
 		$(RELEASE_OBJS) \
-		$(RELEASE_FONT_OBJ) \
-		$(RELEASE_ICON_OBJ) \
 		$(RELEASE_LDFLAGS) \
 		-o $(TARGET)
 
-# Windows debug linking
+# Windows linking
 win-debug: \
 	$(WIN_DEBUG_OBJS) \
 	$(WIN_DEBUG_EXE_ICON_OBJ)
-
 	$(WIN_CXX) \
 		$(WIN_DEBUG_OBJS) \
 		$(WIN_DEBUG_EXE_ICON_OBJ) \
 		$(WIN_DEBUG_LDFLAGS) \
 		-o $(WIN_TARGET)
 
-# Windows release linking
 win-release: \
 	$(WIN_RELEASE_OBJS) \
-	$(WIN_RELEASE_FONT_OBJ) \
-	$(WIN_RELEASE_ICON_OBJ) \
 	$(WIN_RELEASE_EXE_ICON_OBJ)
-
 	$(WIN_CXX) \
 		$(WIN_RELEASE_OBJS) \
-		$(WIN_RELEASE_FONT_OBJ) \
-		$(WIN_RELEASE_ICON_OBJ) \
 		$(WIN_RELEASE_EXE_ICON_OBJ) \
 		$(WIN_RELEASE_LDFLAGS) \
 		-o $(WIN_TARGET)
@@ -355,28 +357,37 @@ run-release: release
 	./$(TARGET)
 
 # Distribution
-DIST_MODE ?= debug
-
-dist: $(DIST_MODE)
+dist: debug
 	@rm -rf $(DIST_DIR)
 	@mkdir -p $(DIST_DIR)
 	cp $(TARGET) $(DIST_DIR)/
-	@echo "Linux distribution built in $(DIST_DIR)/ (mode: $(DIST_MODE))"
+	@for file in $(RUNTIME_ASSETS); do \
+		mkdir -p "$(DIST_DIR)/$$(dirname "$$file")"; \
+		cp "$$file" "$(DIST_DIR)/$$file"; \
+	done
+	@echo "Linux debug distribution built in $(DIST_DIR)/"
 
-dist-release:
-	$(MAKE) dist DIST_MODE=release
+dist-release: release
+	@rm -rf $(DIST_DIR)
+	@mkdir -p $(DIST_DIR)
+	cp $(TARGET) $(DIST_DIR)/
+	@echo "Linux release distribution built in $(DIST_DIR)/"
 
 dist-win: win-debug
 	@rm -rf $(DIST_DIR)
 	@mkdir -p $(DIST_DIR)
 	cp $(WIN_TARGET) $(DIST_DIR)/
-	@echo "Windows distribution built in $(DIST_DIR)/ (mode: debug)"
+	@for file in $(RUNTIME_ASSETS); do \
+		mkdir -p "$(DIST_DIR)/$$(dirname "$$file")"; \
+		cp "$$file" "$(DIST_DIR)/$$file"; \
+	done
+	@echo "Windows debug distribution built in $(DIST_DIR)/"
 
 dist-win-release: win-release
 	@rm -rf $(DIST_DIR)
 	@mkdir -p $(DIST_DIR)
 	cp $(WIN_TARGET) $(DIST_DIR)/
-	@echo "Windows distribution built in $(DIST_DIR)/ (mode: release)"
+	@echo "Windows release distribution built in $(DIST_DIR)/"
 
 dist-release-all: release win-release
 	@rm -rf $(DIST_DIR)
