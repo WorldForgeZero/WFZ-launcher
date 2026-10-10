@@ -8,6 +8,7 @@
 
 #include "ui/info/info_screen.h"
 #include "ui/main/main_screen.h"
+#include "ui/news/news_screen.h"
 #include "ui/settings/settings_screen.h"
 
 namespace wfz::ui
@@ -44,6 +45,7 @@ namespace wfz::ui
 
         void ShowScreen(const Screen screen)
         {
+            news_screen::OnHide();
             HideAllDocuments();
 
             switch (screen)
@@ -62,7 +64,10 @@ namespace wfz::ui
 
             case Screen::News:
                 if (g_news_document)
+                {
                     g_news_document->Show();
+                    news_screen::OnShow();
+                }
 
                 break;
 
@@ -206,6 +211,13 @@ namespace wfz::ui
             return false;
         }
 
+        if (!news_screen::Init(g_news_document))
+        {
+            wfz::logger::Error("Failed to initialize news UI screen");
+            Shutdown();
+            return false;
+        }
+
         const bool navigation_ok =
             BindNavigation(g_main_document, "open-settings") &&
             BindNavigation(g_main_document, "open-news") &&
@@ -223,11 +235,6 @@ namespace wfz::ui
 
         ShowScreen(Screen::Main);
 
-        // TODO: REMOVE BEFORE MERGE
-        wfz::loading_state::SetStatus("Лаунчер готов");
-        wfz::loading_state::SetProgress(1.0f);
-        wfz::loading_state::SetReady(true);
-
         return true;
     }
 
@@ -241,6 +248,7 @@ namespace wfz::ui
         main_screen::Shutdown();
         info_screen::Shutdown();
         settings_screen::Shutdown();
+        news_screen::Shutdown();
 
         CloseDocument(g_main_document);
         CloseDocument(g_settings_document);
