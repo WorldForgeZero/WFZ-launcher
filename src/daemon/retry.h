@@ -11,6 +11,7 @@
 #include "app/exit_req.h"
 #include "app/transfer_state.h"
 #include "etc/logger.h"
+#include "network/http.h"
 
 namespace wfz::daemon
 {
@@ -21,13 +22,14 @@ namespace wfz::daemon
     };
 
     template <typename Fn>
-    auto WithRetry(const std::string &label, const std::vector<std::string> &urls, Fn &&job)
+    auto WithRetry(const std::string &label, const std::vector<std::string> &urls, Fn &&job, bool missing_news_is_expected = false)
         -> decltype(job(urls.front()))
     {
         if (urls.empty())
             throw std::invalid_argument("No URLs configured");
 
         std::string last_error;
+        int last_attempt = 0;
         for (int attempt = 1; attempt <= 3; ++attempt)
         {
             if (wfz::app::ExitRequested())
@@ -36,28 +38,68 @@ namespace wfz::daemon
             const std::string &url = urls[(attempt - 1) % urls.size()];
             wfz::transfer_state::Start(label, url, attempt, 3);
             wfz::logger::Info("[%s] attempt %d/3: %s", label.c_str(), attempt, url.c_str());
+            bool can_retry = true;
+            int retry_after_seconds = 0;
             try
             {
                 auto value = job(url);
                 wfz::transfer_state::SetPhase(wfz::transfer_state::Phase::Completed);
                 return value;
             }
+
             catch (const Cancelled &)
             {
                 throw;
             }
+
+            catch (const wfz::network::HttpStatusError &e)
+            {
+                if (wfz::app::ExitRequested())
+                    throw Cancelled();
+                last_error = e.what();
+                retry_after_seconds = e.retry_after_seconds();
+                switch (e.status())
+                {
+                case 408:
+                case 429:
+                case 500:
+                case 502:
+                case 503:
+                case 504:
+                    can_retry = true;
+                    break;
+
+                default:
+                    can_retry = false;
+                    break;
+                }
+
+                if (e.status() == 404 && missing_news_is_expected)
+                {
+                    wfz::transfer_state::Fail(last_error);
+                    wfz::logger::Info("[%s] news resource not present: %s", label.c_str(), url.c_str());
+                    throw; // Caller retains its cache; no popup.
+                }
+            }
+
             catch (const std::exception &e)
             {
                 if (wfz::app::ExitRequested())
                     throw Cancelled();
-
                 last_error = e.what();
-                wfz::transfer_state::Fail(last_error);
-                wfz::logger::Warning("[%s] failed %d/3: %s (%s)", label.c_str(), attempt, last_error.c_str(), url.c_str());
             }
+
+            last_attempt = attempt;
+            wfz::transfer_state::Fail(last_error);
+            wfz::logger::Warning("[%s] failed %d/3: %s (%s)", label.c_str(), attempt, last_error.c_str(), url.c_str());
+
+            if (!can_retry && static_cast<std::size_t>(attempt) >= urls.size())
+                break;
+
             if (attempt < 3)
             {
-                for (int t = 0; t < attempt * 10; ++t)
+                const int wait_seconds = can_retry ? (retry_after_seconds > 0 ? retry_after_seconds : attempt) : 0;
+                for (int t = 0; t < wait_seconds * 10; ++t)
                 {
                     if (wfz::app::ExitRequested())
                         throw Cancelled();
@@ -66,9 +108,10 @@ namespace wfz::daemon
                 }
             }
         }
+
         wfz::alerts::Post({"НЕ УДАЛОСЬ ПОЛУЧИТЬ ДАННЫЕ",
-                           label + ": три неудачные попытки. Проверь соединение или доступ к источнику.",
-                           last_error + "\nПоследний адрес: " + urls[(3 - 1) % urls.size()],
+                           label + ": не удалось получить данные (попыток: " + std::to_string(last_attempt) + ").",
+                           last_error + "\nПоследний адрес: " + urls[(last_attempt - 1) % urls.size()],
                            "ПОВТОРИТЬ",
                            wfz::alerts::Action::RetryAll});
         throw std::runtime_error(label + ": " + last_error);

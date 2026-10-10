@@ -146,23 +146,25 @@ namespace
         const fs::path content_path = dir / "news_content.json";
         try
         {
-            wfz::daemon::WithRetry(name + ": новости", {prefix}, [&](const std::string &url)
+            wfz::daemon::WithRetry(name + ": новости", {prefix + "news.json"}, [&](const std::string &url)
                                    {
-                const std::string revision_body = wfz::network::GetText(url + "news.json", name + ": ревизия", 1024);
+                const std::string revision_body = wfz::network::GetText(url, name + ": ревизия", 1024);
                 const int remote = Revision(json::parse(revision_body));
                 if (CachedRevision(revision_path) == remote && CachedNewsValid(content_path))
                 {
                     wfz::logger::Info("%s news unchanged: revision %d", name.c_str(), remote);
                     return true;
                 }
-                const std::string content = wfz::network::GetText(url + "news_content.json", name + ": новости", 32 * 1024 * 1024);
+                wfz::logger::Info("[%s: новости] downloading: %s", name.c_str(), (prefix + "news_content.json").c_str());
+                const std::string content = wfz::network::GetText(prefix + "news_content.json", name + ": новости", 32 * 1024 * 1024);
                 if (!json::parse(content).is_array())
                     throw std::runtime_error("News content must be a JSON array");
+                    
                 // Commit the content first. A crash before revision commit causes a retry next run.
                 wfz::network::WriteAtomic(content_path, content);
                 wfz::network::WriteAtomic(revision_path, revision_body);
                 wfz::logger::Info("%s news updated to revision %d", name.c_str(), remote);
-                return true; });
+                return true; }, name == "Game");
         }
         catch (const wfz::daemon::Cancelled &)
         {

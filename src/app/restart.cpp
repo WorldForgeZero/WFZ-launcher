@@ -119,7 +119,9 @@ namespace wfz::app
         {
             const std::string pid = std::to_string(static_cast<long>(parent_pid));
             const std::string executable = exe.string();
-            (void)chdir(wfz::paths::ExecutableDir().c_str());
+            if (chdir(wfz::paths::ExecutableDir().c_str()) != 0)
+                _exit(127);
+
             execl(executable.c_str(), executable.c_str(), "--wait-launcher-exit", pid.c_str(), (char *)nullptr);
             _exit(127);
         }

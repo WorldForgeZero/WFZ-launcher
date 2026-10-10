@@ -7,6 +7,7 @@
 #include <httplib/httplib.h>
 
 #include <algorithm>
+#include <charconv>
 #include <chrono>
 #include <cstdint>
 #include <filesystem>
@@ -70,12 +71,26 @@ namespace
             std::ostringstream message;
             message << "HTTP " << result->status;
             if (result->status == 403 || result->status == 451)
-
                 message << " (access denied or restricted)";
+
             if (result->status == 404)
                 message << " (file not found)";
 
-            throw wfz::network::Error(message.str());
+            int retry_after_seconds = 0;
+            if (result->status == 429 || result->status == 503)
+            {
+                const std::string retry_after = result->get_header_value("Retry-After");
+                if (!retry_after.empty())
+                {
+                    int seconds = 0;
+                    const auto [end, ec] = std::from_chars(
+                        retry_after.data(), retry_after.data() + retry_after.size(), seconds);
+
+                    if (ec == std::errc{} && end == retry_after.data() + retry_after.size() && seconds > 0)
+                        retry_after_seconds = std::min(seconds, 30);
+                }
+            }
+            throw wfz::network::HttpStatusError(result->status, message.str(), retry_after_seconds);
         }
     }
 
