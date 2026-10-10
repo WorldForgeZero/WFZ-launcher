@@ -1,0 +1,34 @@
+<rml>
+
+    <head>
+        <title>WFZ Notification</title>
+        <link type="text/rcss" href="../base.rcss" />
+        <link type="text/rcss" href="../common.rcss" />
+        <link type="text/rcss" href="alerts.rcss" />
+    </head>
+
+    <body>
+        <div class="alert-overlay">
+            <div class="alert-panel">
+                <div id="alert-title" class="alert-title">УВЕДОМЛЕНИЕ</div>
+
+                <div id="alert-scroll" class="alert-scroll">
+                    <div id="alert-message" class="alert-message"></div>
+                    <div id="alert-details" class="alert-details"></div>
+                </div>
+
+                <div class="alert-actions">
+                    <button id="alert-details-toggle" class="alert-button alert-details-toggle">
+                        <span class="button-label">ПОДРОБНОСТИ</span>
+                    </button>
+                    <button id="alert-action" class="alert-button">
+                        <span class="button-label">ПОВТОРИТЬ</span>
+                    </button>
+                    <button id="alert-dismiss" class="alert-button">
+                        <span class="button-label">ЗАКРЫТЬ</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </body>
+</rml>

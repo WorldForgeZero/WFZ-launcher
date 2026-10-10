@@ -1,3 +1,8 @@
 #pragma once
 
-void RunDaemonBootstrap();
+namespace wfz::daemon
+{
+    void Start();
+    void RetryAll();
+    void InstallUpdate();
+}

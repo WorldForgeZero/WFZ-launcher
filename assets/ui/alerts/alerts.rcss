@@ -1,0 +1,109 @@
+.alert-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #080808ed;
+}
+
+.alert-panel {
+    width: 82%;
+    max-height: 85%;
+    padding: 20px;
+    box-sizing: border-box;
+    border-width: 1px;
+    border-color: #ff9800;
+    border-radius: 4px;
+    background-color: #1a1a1a;
+    overflow: hidden;
+}
+
+.alert-title {
+    width: 100%;
+    margin-bottom: 14px;
+    font-size: 20px;
+    color: #ffb245;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.alert-scroll {
+    width: 100%;
+    max-height: 182px;
+    box-sizing: border-box;
+    padding-right: 10px;
+    margin-bottom: 16px;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.alert-message {
+    width: 100%;
+    font-size: 16px;
+    line-height: 1.5;
+    color: #e8e8e8;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.alert-details {
+    display: none;
+    width: 100%;
+    margin-top: 12px;
+    padding: 12px;
+    box-sizing: border-box;
+    font-size: 14px;
+    line-height: 1.5;
+    color: #c8c8c8;
+    background-color: #111111;
+    border-width: 1px;
+    border-color: #383838;
+    border-radius: 3px;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.alert-actions {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+.alert-button {
+    min-width: 142px;
+    height: 46px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 12px;
+    margin-left: 10px;
+    box-sizing: border-box;
+    font-size: 16px;
+    color: #e8e8e8;
+    background-color: #232323;
+    border-width: 1px;
+    border-color: #494949;
+    border-radius: 3px;
+}
+
+.alert-button:hover {
+    background-color: #2a2a2a;
+    border-color: #ff9800;
+}
+
+.alert-button:active {
+    background-color: #323232;
+}
+
+.alert-details-toggle {
+    min-width: 164px;
+    margin-left: 0;
+    margin-right: auto;
+    font-size: 14px;
+    color: #bcbcbc;
+}

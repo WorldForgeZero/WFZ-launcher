@@ -1,8 +1,11 @@
 #include "paths.h"
 
+#include <cstdlib>
 #include <filesystem>
+#include <mutex>
 #include <stdexcept>
 #include <string>
+#include <utility>
 #include <vector>
 
 #ifdef _WIN32
@@ -11,6 +14,8 @@
 
 #else
 
+#include <pwd.h>
+#include <sys/types.h>
 #include <unistd.h>
 
 #endif
@@ -66,49 +71,166 @@ namespace
 #endif
     }
 
+#ifdef _WIN32
+
+    fs::path GetLocalAppDataPath()
+    {
+        const DWORD required_size = GetEnvironmentVariableW(L"LOCALAPPDATA", nullptr, 0);
+
+        if (required_size == 0)
+        {
+            throw std::runtime_error("Failed to get LOCALAPPDATA");
+        }
+
+        std::vector<wchar_t> buffer(required_size);
+
+        const DWORD length = GetEnvironmentVariableW(L"LOCALAPPDATA", buffer.data(), static_cast<DWORD>(buffer.size()));
+
+        if (length == 0 || length >= buffer.size())
+        {
+            throw std::runtime_error("Failed to read LOCALAPPDATA");
+        }
+
+        return fs::path(buffer.data());
+    }
+
+#else
+
+    fs::path GetHomePath()
+    {
+        if (const char *home = std::getenv("HOME"))
+        {
+            if (*home != '\0')
+                return fs::u8path(home);
+        }
+
+        const passwd *entry = getpwuid(getuid());
+
+        if (entry && entry->pw_dir && entry->pw_dir[0] != '\0')
+        {
+            return fs::u8path(entry->pw_dir);
+        }
+
+        throw std::runtime_error("Failed to get user home directory");
+    }
+
+#endif
+
+    fs::path GetConfigDirPlatform()
+    {
+#ifdef _WIN32
+
+        return GetLocalAppDataPath() / L"WFZ";
+
+#else
+
+        if (const char *xdg_config_home = std::getenv("XDG_CONFIG_HOME"))
+            if (*xdg_config_home != '\0')
+                return fs::u8path(xdg_config_home) / "wfz";
+
+        return GetHomePath() / ".config" / "wfz";
+
+#endif
+    }
+
     struct Paths
     {
         fs::path executable;
         fs::path executable_dir;
 
+        fs::path config;
+
+        fs::path default_source;
         fs::path source;
 
-        fs::path temp;
-        fs::path config;
-        fs::path game;
-        fs::path launcher;
-        fs::path logs;
+        std::mutex mutex;
 
         Paths()
             : executable(GetExecutablePathPlatform()),
               executable_dir(executable.parent_path()),
-              source(executable_dir / "WFZSource"),
-              temp(source / "tmp"),
-              config(source / "config"),
-              game(source / "game"),
-              launcher(source / "launcher"),
-              logs(source / "logs")
+              config(GetConfigDirPlatform()),
+              default_source(executable_dir / "WFZSource"),
+              source(default_source)
         {
         }
     };
 
-    const Paths &GetPaths()
+    Paths &GetPaths()
     {
-        static const Paths paths;
+        static Paths paths;
         return paths;
     }
 }
 
 namespace wfz::paths
 {
-    const fs::path &ExecutablePath() { return GetPaths().executable; }
-    const fs::path &ExecutableDir() { return GetPaths().executable_dir; }
+    fs::path ExecutablePath()
+    {
+        return GetPaths().executable;
+    }
 
-    const fs::path &SourceDir() { return GetPaths().source; }
+    fs::path ExecutableDir()
+    {
+        return GetPaths().executable_dir;
+    }
 
-    const fs::path &TempDir() { return GetPaths().temp; }
-    const fs::path &ConfigDir() { return GetPaths().config; }
-    const fs::path &GameDir() { return GetPaths().game; }
-    const fs::path &LauncherDir() { return GetPaths().launcher; }
-    const fs::path &LogsDir() { return GetPaths().logs; }
+    fs::path ConfigDir()
+    {
+        return GetPaths().config;
+    }
+
+    fs::path DefaultSourceDir()
+    {
+        return GetPaths().default_source;
+    }
+
+    fs::path SourceDir()
+    {
+        Paths &paths = GetPaths();
+
+        std::lock_guard<std::mutex> lock(paths.mutex);
+
+        return paths.source;
+    }
+
+    void SetSourceDir(fs::path path)
+    {
+        if (path.empty())
+        {
+            throw std::invalid_argument("Source directory cannot be empty");
+        }
+
+        if (!path.is_absolute())
+        {
+            throw std::invalid_argument("Source directory must be absolute");
+        }
+
+        path = path.lexically_normal();
+
+        Paths &paths = GetPaths();
+
+        std::lock_guard<std::mutex> lock(paths.mutex);
+
+        paths.source = std::move(path);
+    }
+
+    fs::path TempDir()
+    {
+        return SourceDir() / "tmp";
+    }
+
+    fs::path GameDir()
+    {
+        return SourceDir() / "game";
+    }
+
+    fs::path LauncherDir()
+    {
+        return SourceDir() / "launcher";
+    }
+
+    fs::path LogsDir()
+    {
+        return SourceDir() / "logs";
+    }
 }

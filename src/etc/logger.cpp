@@ -1,12 +1,15 @@
 #include "logger.h"
 
-#include <raylib.h>
-
+#include <chrono>
 #include <cstdarg>
 #include <cstdio>
+#include <ctime>
 #include <filesystem>
 #include <fstream>
+#include <iomanip>
+#include <iostream>
 #include <mutex>
+#include <sstream>
 #include <string>
 #include <thread>
 #include <vector>
@@ -22,26 +25,26 @@ namespace
     std::ofstream g_log_file;
     std::mutex g_log_mutex;
 
-    const char *LogLevelName(int level)
+    const char *LogLevelName(wfz::logger::Level level)
     {
         switch (level)
         {
-        case LOG_TRACE:
+        case wfz::logger::Level::Trace:
             return "TRACE";
 
-        case LOG_DEBUG:
+        case wfz::logger::Level::Debug:
             return "DEBUG";
 
-        case LOG_INFO:
+        case wfz::logger::Level::Info:
             return "INFO";
 
-        case LOG_WARNING:
+        case wfz::logger::Level::Warning:
             return "WARNING";
 
-        case LOG_ERROR:
+        case wfz::logger::Level::Error:
             return "ERROR";
 
-        case LOG_FATAL:
+        case wfz::logger::Level::Fatal:
             return "FATAL";
 
         default:
@@ -61,26 +64,94 @@ namespace
         if (length <= 0)
             return {};
 
-        std::vector<char> buffer(static_cast<std::size_t>(length) + 1);
+        std::vector<char> buffer(
+            static_cast<std::size_t>(length) + 1);
 
         va_copy(copy, args);
-        std::vsnprintf(buffer.data(), buffer.size(), format, copy);
+
+        std::vsnprintf(
+            buffer.data(),
+            buffer.size(),
+            format,
+            copy);
+
         va_end(copy);
 
-        return std::string(buffer.data(), static_cast<std::size_t>(length));
+        return std::string(
+            buffer.data(),
+            static_cast<std::size_t>(length));
     }
 
-    void RaylibLogCallback(int log_level, const char *text, va_list args)
+    std::tm GetLocalTime(std::time_t time)
     {
-        const std::string message = FormatMessage(text, args);
+        std::tm result{};
+
+#ifdef _WIN32
+        localtime_s(&result, &time);
+#else
+        localtime_r(&time, &result);
+#endif
+
+        return result;
+    }
+
+    std::string BuildPrefix(wfz::logger::Level level)
+    {
+        const auto now = std::chrono::system_clock::now();
+        const std::time_t time = std::chrono::system_clock::to_time_t(now);
+
+        const std::tm local_time = GetLocalTime(time);
+
+        std::ostringstream stream;
+
+        stream
+            << '['
+            << std::put_time(&local_time, "%Y-%m-%d %H:%M:%S")
+            << "] ["
+            << LogLevelName(level)
+            << "] ";
+
+        return stream.str();
+    }
+
+    void Write(
+        wfz::logger::Level level,
+        const std::string &message)
+    {
+        const std::string line =
+            BuildPrefix(level) + message;
 
         std::lock_guard<std::mutex> lock(g_log_mutex);
 
+        if (level == wfz::logger::Level::Warning ||
+            level == wfz::logger::Level::Error ||
+            level == wfz::logger::Level::Fatal)
+        {
+            std::cerr << line << '\n';
+        }
+        else
+        {
+            std::cout << line << '\n';
+        }
+
         if (g_log_file.is_open())
         {
-            g_log_file << '[' << LogLevelName(log_level) << "] " << message << '\n';
+            g_log_file << line << '\n';
             g_log_file.flush();
         }
+    }
+
+    void LogV(
+        wfz::logger::Level level,
+        const char *format,
+        va_list args)
+    {
+        if (!format)
+            return;
+
+        Write(
+            level,
+            FormatMessage(format, args));
     }
 
     const char *GetPlatformName()
@@ -136,65 +207,49 @@ namespace wfz::logger
 {
     bool Init()
     {
+        std::lock_guard<std::mutex> lock(g_log_mutex);
+
+        if (g_log_file.is_open())
+            return true;
+
         std::error_code ec;
 
-        fs::create_directories(wfz::paths::LogsDir(), ec);
+        fs::create_directories(
+            wfz::paths::LogsDir(),
+            ec);
 
         if (ec)
+        {
+            std::cerr
+                << "Failed to create log directory: "
+                << ec.message()
+                << '\n';
+
             return false;
+        }
 
-        const fs::path log_path = wfz::paths::LogsDir() / "launcher.log";
+        const fs::path log_path =
+            wfz::paths::LogsDir() / "launcher.log";
 
-        g_log_file.open(log_path, std::ios::out | std::ios::trunc);
+        g_log_file.open(
+            log_path,
+            std::ios::out | std::ios::trunc);
 
         if (!g_log_file.is_open())
-            return false;
+        {
+            std::cerr
+                << "Failed to open log file: "
+                << log_path
+                << '\n';
 
-        SetTraceLogCallback(RaylibLogCallback);
-        SetTraceLogLevel(LOG_TRACE);
+            return false;
+        }
 
         return true;
     }
 
-    void DumpStartupInfo()
-    {
-        TraceLog(LOG_INFO, "============================================================");
-
-        TraceLog(LOG_INFO, "WFZ Launcher startup information");
-        TraceLog(LOG_INFO, "Launcher version: %s", launcher_version);
-        TraceLog(LOG_INFO, "Platform: %s", GetPlatformName());
-        TraceLog(LOG_INFO, "Architecture: %s", GetArchitecture());
-        TraceLog(LOG_INFO, "Build type: %s", GetBuildType());
-        TraceLog(LOG_INFO, "Compiler: %s", GetCompilerName());
-#ifdef __VERSION__
-        TraceLog(LOG_INFO, "Compiler version: %s", __VERSION__);
-#endif
-        TraceLog(LOG_INFO, "Pointer size: %zu-bit", sizeof(void *) * 8);
-        TraceLog(LOG_INFO, "Hardware threads: %u", std::thread::hardware_concurrency());
-        TraceLog(LOG_INFO, "Executable: %s", wfz::paths::ExecutablePath().string().c_str());
-        TraceLog(LOG_INFO, "Executable directory: %s", wfz::paths::ExecutableDir().string().c_str());
-        TraceLog(LOG_INFO, "Source directory: %s", wfz::paths::SourceDir().string().c_str());
-
-        std::error_code ec;
-
-        const fs::path working_directory = fs::current_path(ec);
-
-        if (!ec)
-        {
-            TraceLog(LOG_INFO, "Working directory: %s", working_directory.string().c_str());
-        }
-        else
-        {
-            TraceLog(LOG_WARNING, "Failed to get working directory: %s", ec.message().c_str());
-        }
-
-        TraceLog(LOG_INFO, "============================================================");
-    }
-
     void Shutdown()
     {
-        SetTraceLogCallback(nullptr);
-
         std::lock_guard<std::mutex> lock(g_log_mutex);
 
         if (!g_log_file.is_open())
@@ -202,5 +257,137 @@ namespace wfz::logger
 
         g_log_file.flush();
         g_log_file.close();
+    }
+
+    void Log(Level level, const char *format, ...)
+    {
+        va_list args;
+        va_start(args, format);
+
+        LogV(level, format, args);
+
+        va_end(args);
+    }
+
+    void Trace(const char *format, ...)
+    {
+        va_list args;
+        va_start(args, format);
+
+        LogV(Level::Trace, format, args);
+
+        va_end(args);
+    }
+
+    void Debug(const char *format, ...)
+    {
+        va_list args;
+        va_start(args, format);
+
+        LogV(Level::Debug, format, args);
+
+        va_end(args);
+    }
+
+    void Info(const char *format, ...)
+    {
+        va_list args;
+        va_start(args, format);
+
+        LogV(Level::Info, format, args);
+
+        va_end(args);
+    }
+
+    void Warning(const char *format, ...)
+    {
+        va_list args;
+        va_start(args, format);
+
+        LogV(Level::Warning, format, args);
+
+        va_end(args);
+    }
+
+    void Error(const char *format, ...)
+    {
+        va_list args;
+        va_start(args, format);
+
+        LogV(Level::Error, format, args);
+
+        va_end(args);
+    }
+
+    void Fatal(const char *format, ...)
+    {
+        va_list args;
+        va_start(args, format);
+
+        LogV(Level::Fatal, format, args);
+
+        va_end(args);
+    }
+
+    void DumpStartupInfo()
+    {
+        Info("============================================================");
+
+        Info("WFZ Launcher startup information");
+        Info("Launcher version: %s", launcher_version);
+        Info("Platform: %s", GetPlatformName());
+        Info("Architecture: %s", GetArchitecture());
+        Info("Build type: %s", GetBuildType());
+        Info("Compiler: %s", GetCompilerName());
+
+#ifdef __VERSION__
+        Info("Compiler version: %s", __VERSION__);
+#endif
+
+        Info(
+            "Pointer size: %zu-bit",
+            sizeof(void *) * 8);
+
+        Info(
+            "Hardware threads: %u",
+            std::thread::hardware_concurrency());
+
+        Info(
+            "Executable: %s",
+            wfz::paths::ExecutablePath()
+                .string()
+                .c_str());
+
+        Info(
+            "Executable directory: %s",
+            wfz::paths::ExecutableDir()
+                .string()
+                .c_str());
+
+        Info(
+            "Source directory: %s",
+            wfz::paths::SourceDir()
+                .string()
+                .c_str());
+
+        std::error_code ec;
+
+        const fs::path working_directory =
+            fs::current_path(ec);
+
+        if (!ec)
+        {
+            Info(
+                "Working directory: %s",
+                working_directory.string().c_str());
+        }
+        else
+        {
+            Warning(
+                "Failed to get working directory: %s",
+                ec.message().c_str());
+        }
+
+        Info("============================================================");
     }
 }

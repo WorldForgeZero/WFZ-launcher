@@ -1,5 +1,8 @@
 #pragma once
 
+#include <filesystem>
+#include <string>
+
 enum class WFZSettingId
 {
     LoadLauncherNews,
@@ -24,6 +27,11 @@ struct WFZLauncherSettings
 
     bool admin_bypass = false;
     bool dev_mode = false;
+
+    std::string source_dir;
+
+    std::string pending_cleanup_dir;
+    bool pending_reset_settings = false;
 };
 
 namespace wfz::settings
@@ -35,6 +43,12 @@ namespace wfz::settings
     void SetBool(WFZSettingId id, bool value);
 
     WFZLauncherSettings GetSnapshot();
+
+    std::filesystem::path GetSourceDir();
+    bool SetSourceDir(const std::filesystem::path &path, bool delete_old_after_restart = false);
+
+    bool ScheduleMaintenance(const std::filesystem::path &cleanup_dir, bool reset_settings);
+    bool CancelMaintenance();
 
     void Reset();
 }
