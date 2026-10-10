@@ -2,11 +2,15 @@
 
 #include <filesystem>
 #include <fstream>
+#include <iostream>
 #include <mutex>
+#include <string>
 
 #include <nlohmann/json.hpp>
 
+#include "app/restart.h"
 #include "etc/paths.h"
+#include "etc/source_storage.h"
 
 namespace fs = std::filesystem;
 using json = nlohmann::json;
@@ -96,6 +100,10 @@ namespace
 
             {"admin_bypass", settings.admin_bypass},
             {"dev_mode", settings.dev_mode},
+
+            {"source_dir", settings.source_dir},
+            {"pending_cleanup_dir", settings.pending_cleanup_dir},
+            {"pending_reset_settings", settings.pending_reset_settings},
         };
     }
 
@@ -135,6 +143,30 @@ namespace
         {
             settings.dev_mode = data.at("dev_mode").get<bool>();
         }
+
+        if (data.contains("pending_reset_settings") && data.at("pending_reset_settings").is_boolean())
+            settings.pending_reset_settings = data.at("pending_reset_settings").get<bool>();
+
+        if (data.contains("pending_cleanup_dir") && data.at("pending_cleanup_dir").is_string())
+        {
+            const std::string value = data.at("pending_cleanup_dir").get<std::string>();
+            const fs::path path = fs::u8path(value);
+            if (path.is_absolute())
+                settings.pending_cleanup_dir = path.lexically_normal().u8string();
+        }
+
+        if (data.contains("source_dir") && data.at("source_dir").is_string())
+        {
+            const std::string source_dir = data.at("source_dir").get<std::string>();
+
+            if (!source_dir.empty())
+            {
+                const fs::path path = fs::u8path(source_dir).lexically_normal();
+
+                if (path.is_absolute())
+                    settings.source_dir = path.u8string();
+            }
+        }
     }
 }
 
@@ -161,14 +193,55 @@ namespace wfz::settings
 
             json data;
             file >> data;
+            file.close(); // Windows cannot remove an open settings.json.
 
             WFZLauncherSettings loaded{};
 
             FromJson(data, loaded);
 
+            const fs::path source_dir = loaded.source_dir.empty()
+                                            ? wfz::paths::DefaultSourceDir()
+                                            : fs::u8path(loaded.source_dir);
+
+            wfz::paths::SetSourceDir(source_dir);
+
             {
                 std::lock_guard<std::mutex> lock(g_settings_mutex);
                 g_settings = loaded;
+            }
+
+            if (wfz::app::WasRestarted() && (!loaded.pending_cleanup_dir.empty() || loaded.pending_reset_settings))
+            {
+                std::string error;
+                const bool cleaned = loaded.pending_cleanup_dir.empty() || wfz::source_storage::Cleanup(fs::u8path(loaded.pending_cleanup_dir), error);
+                if (cleaned)
+                {
+                    if (loaded.pending_reset_settings)
+                    {
+                        {
+                            std::lock_guard<std::mutex> lock(g_settings_mutex);
+                            g_settings = WFZLauncherSettings{};
+                        }
+                        wfz::paths::SetSourceDir(wfz::paths::DefaultSourceDir());
+                        std::error_code ec;
+                        fs::remove(GetSettingsPath(), ec);
+                        if (ec)
+                            std::cerr << "Failed to reset settings: " << ec.message() << '\n';
+                    }
+                    else
+                    {
+                        {
+                            std::lock_guard<std::mutex> lock(g_settings_mutex);
+                            g_settings.pending_cleanup_dir.clear();
+                            g_settings.pending_reset_settings = false;
+                        }
+                        Save();
+                    }
+                }
+                else
+                {
+                    std::cerr << "Source cleanup failed: " << error << '\n';
+                }
             }
         }
         catch (...)
@@ -233,6 +306,124 @@ namespace wfz::settings
     {
         std::lock_guard<std::mutex> lock(g_settings_mutex);
         return g_settings;
+    }
+
+    fs::path GetSourceDir()
+    {
+        std::lock_guard<std::mutex> lock(g_settings_mutex);
+
+        return g_settings.source_dir.empty()
+                   ? wfz::paths::DefaultSourceDir()
+                   : fs::u8path(g_settings.source_dir);
+    }
+
+    bool SetSourceDir(const fs::path &requested_path, bool delete_old_after_restart)
+    {
+        fs::path path;
+        std::string serialized;
+
+        try
+        {
+            if (!requested_path.empty())
+            {
+                path = requested_path.lexically_normal();
+
+                if (!path.is_absolute())
+                    return false;
+
+                std::error_code ec;
+                fs::create_directories(path, ec);
+
+                if (ec || !fs::is_directory(path, ec) || ec)
+                    return false;
+
+                if (path != wfz::paths::DefaultSourceDir())
+                    serialized = path.u8string();
+            }
+        }
+        catch (...)
+        {
+            return false;
+        }
+
+        std::string old_value;
+        std::string old_cleanup;
+        bool old_reset = false;
+
+        {
+            std::lock_guard<std::mutex> lock(g_settings_mutex);
+            old_value = g_settings.source_dir;
+            old_cleanup = g_settings.pending_cleanup_dir;
+            old_reset = g_settings.pending_reset_settings;
+
+            if (old_value == serialized && !delete_old_after_restart &&
+                g_settings.pending_cleanup_dir.empty() && !g_settings.pending_reset_settings)
+                return true;
+
+            g_settings.source_dir = serialized;
+            g_settings.pending_cleanup_dir = delete_old_after_restart
+                                                 ? wfz::paths::SourceDir().u8string()
+                                                 : std::string{};
+
+            g_settings.pending_reset_settings = false;
+        }
+
+        if (Save())
+            return true;
+
+        {
+            std::lock_guard<std::mutex> lock(g_settings_mutex);
+            if (g_settings.source_dir == serialized)
+            {
+                g_settings.source_dir = old_value;
+                g_settings.pending_cleanup_dir = old_cleanup;
+                g_settings.pending_reset_settings = old_reset;
+            }
+        }
+
+        return false;
+    }
+
+    bool ScheduleMaintenance(const fs::path &dir, bool reset_settings)
+    {
+        if (!dir.empty() && !dir.is_absolute())
+            return false;
+
+        WFZLauncherSettings previous;
+        {
+            std::lock_guard<std::mutex> lock(g_settings_mutex);
+            previous = g_settings;
+            g_settings.pending_cleanup_dir = dir.empty() ? "" : dir.lexically_normal().u8string();
+            g_settings.pending_reset_settings = reset_settings;
+        }
+        if (Save())
+            return true;
+
+        {
+            std::lock_guard<std::mutex> lock(g_settings_mutex);
+            g_settings = previous;
+        }
+        return false;
+    }
+
+    bool CancelMaintenance()
+    {
+        WFZLauncherSettings previous;
+        {
+            std::lock_guard<std::mutex> lock(g_settings_mutex);
+            previous = g_settings;
+            g_settings.pending_cleanup_dir.clear();
+            g_settings.pending_reset_settings = false;
+        }
+
+        if (Save())
+            return true;
+
+        {
+            std::lock_guard<std::mutex> lock(g_settings_mutex);
+            g_settings = previous;
+        }
+        return false;
     }
 
     void Reset()

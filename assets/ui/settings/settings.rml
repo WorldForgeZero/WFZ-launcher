@@ -19,6 +19,41 @@
 
         <div id="settings-content" class="page-content"></div>
 
+        <div id="settings-path-dialog" class="settings-modal">
+            <div class="settings-modal-panel">
+                <div class="settings-modal-title">ИЗМЕНЕНИЕ ПАПКИ УСТАНОВКИ</div>
+                <div id="settings-path-dialog-info" class="settings-modal-text"></div>
+                <div class="settings-modal-grid">
+                    <button id="settings-path-copy" class="wfz-button settings-modal-button"><span
+                            class="button-label">КОПИРОВАТЬ</span></button>
+                    <button id="settings-path-move" class="wfz-button settings-modal-button"><span
+                            class="button-label">ПЕРЕНЕСТИ И УДАЛИТЬ</span></button>
+                    <button id="settings-path-keep" class="wfz-button settings-modal-button"><span
+                            class="button-label">НЕ ТРОГАТЬ</span></button>
+                    <button id="settings-path-discard"
+                        class="wfz-button settings-modal-button settings-modal-danger"><span class="button-label">ТОЛЬКО
+                            УДАЛИТЬ</span></button>
+                </div>
+                <div id="settings-path-dialog-status" class="settings-modal-text"></div>
+                <button id="settings-path-cancel" class="wfz-button settings-modal-button settings-modal-cancel"><span
+                        class="button-label">ОТМЕНА</span></button>
+            </div>
+        </div>
+
+        <div id="settings-delete-dialog" class="settings-modal">
+            <div class="settings-modal-panel">
+                <div class="settings-modal-title">ПОДТВЕРЖДЕНИЕ УДАЛЕНИЯ</div>
+                <div id="settings-delete-dialog-info" class="settings-modal-text"></div>
+                <div class="settings-modal-grid">
+                    <button id="settings-delete-confirm"
+                        class="wfz-button settings-modal-button settings-modal-danger"><span
+                            class="button-label">ПОДТВЕРДИТЬ УДАЛЕНИЕ</span></button>
+                    <button id="settings-delete-cancel" class="wfz-button settings-modal-button"><span
+                            class="button-label">ОТМЕНА</span></button>
+                </div>
+            </div>
+        </div>
+
         <div class="footer">
             <div class="footer-line"></div>
 

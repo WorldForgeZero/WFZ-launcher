@@ -235,12 +235,18 @@ namespace wfz::ui
 
         ShowScreen(Screen::Main);
 
+        // TODO: REMOVE BEFORE MERGE
+        wfz::loading_state::SetStatus("Лаунчер готов");
+        wfz::loading_state::SetProgress(1.0f);
+        wfz::loading_state::SetReady(true);
+
         return true;
     }
 
     void Update(const float delta_time)
     {
         main_screen::Update(delta_time);
+        settings_screen::Update(delta_time);
     }
 
     void Shutdown()

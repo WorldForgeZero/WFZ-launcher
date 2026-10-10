@@ -167,3 +167,140 @@
     left: auto;
     right: 0;
 }
+
+.setting-row-button {
+    min-height: 84px;
+}
+
+.setting-row-button .setting-text {
+    min-width: 0;
+}
+
+.setting-row-text {
+    display: block;
+    padding-bottom: 12px;
+}
+
+.setting-row-text .setting-text {
+    padding-bottom: 7px;
+}
+
+.setting-control-line {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    width: 100%;
+    box-sizing: border-box;
+    padding-left: 16px;
+    padding-right: 16px;
+}
+
+.setting-input {
+    flex: 1;
+    min-width: 0;
+    height: 44px;
+    box-sizing: border-box;
+
+    padding: 10px 12px;
+
+    font-size: 16px;
+    color: #e8e8e8;
+    background-color: #1c1c1c;
+
+    border-width: 1px;
+    border-color: #414141;
+    border-radius: 4px;
+}
+
+.setting-input:hover,
+.setting-input:focus {
+    background-color: #252525;
+    border-color: #ff9800;
+}
+
+.setting-action-button {
+    width: 168px;
+    height: 44px;
+    flex: none;
+    margin-right: 16px;
+    font-size: 16px;
+}
+
+.setting-control-line .setting-action-button {
+    margin-left: 10px;
+    margin-right: 0;
+}
+
+.setting-action-danger,
+.settings-modal-danger {
+    border-color: #a53b32;
+}
+
+.setting-action-danger:hover,
+.settings-modal-danger:hover {
+    border-color: #dc5144;
+    background-color: #33201e;
+    color: #e8e8e8;
+}
+
+.setting-status {
+    margin-left: 16px;
+    margin-right: 16px;
+    margin-top: 6px;
+    font-size: 13px;
+}
+
+.settings-modal {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 100;
+    background-color: #070707ed;
+    align-items: center;
+    justify-content: center;
+}
+
+.settings-modal-panel {
+    width: 88%;
+    box-sizing: border-box;
+    padding: 18px;
+    border-width: 1px;
+    border-color: #ff9800;
+    border-radius: 5px;
+    background-color: #1a1a1a;
+}
+
+.settings-modal-title {
+    font-size: 18px;
+    color: #ffb245;
+    margin-bottom: 12px;
+}
+
+.settings-modal-text {
+    font-size: 14px;
+    color: #d2d2d2;
+    white-space: pre-wrap;
+    margin-bottom: 12px;
+}
+
+.settings-modal-grid {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+.settings-modal-button {
+    width: 47%;
+    min-height: 48px;
+    margin-right: 2%;
+    margin-bottom: 8px;
+    padding: 6px 10px;
+    font-size: 16px;
+}
+
+.settings-modal-cancel {
+    width: 100%;
+}

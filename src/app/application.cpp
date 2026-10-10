@@ -6,6 +6,7 @@
 #include "RmlUi_Backend.h"
 
 #include "app/exit_req.h"
+#include "app/restart.h"
 #include "app/thread_manager.h"
 #include "app/window_icon.h"
 
@@ -37,6 +38,9 @@ namespace wfz::app
 
             int Run(int argc, char **argv)
             {
+                if (!wfz::app::WaitForPreviousInstance(argc, argv))
+                    return 1;
+
                 if (const auto result = wfz::self_update::HandleStartupArguments(argc, argv))
                 {
                     return *result;
@@ -54,12 +58,12 @@ namespace wfz::app
         private:
             bool Initialize()
             {
+                wfz::settings::Load();
+
                 wfz::logger::Init();
                 logger_initialized_ = true;
 
                 wfz::logger::DumpStartupInfo();
-
-                wfz::settings::Load();
 
                 if (!Backend::Initialize("World Forge Zero", WINDOW_WIDTH, WINDOW_HEIGHT, true))
                 {
