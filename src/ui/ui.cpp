@@ -2,10 +2,9 @@
 
 #include <RmlUi/Core.h>
 
-#include "app/loading_state.h"
-
 #include "etc/logger.h"
 
+#include "ui/alerts/alerts_screen.h"
 #include "ui/info/info_screen.h"
 #include "ui/main/main_screen.h"
 #include "ui/news/news_screen.h"
@@ -27,6 +26,7 @@ namespace wfz::ui
         Rml::ElementDocument *g_settings_document = nullptr;
         Rml::ElementDocument *g_news_document = nullptr;
         Rml::ElementDocument *g_info_document = nullptr;
+        Rml::ElementDocument *g_alert_document = nullptr;
 
         void HideAllDocuments()
         {
@@ -177,11 +177,13 @@ namespace wfz::ui
         g_news_document = LoadDocument(context, "assets/ui/news/news.rml");
 
         g_info_document = LoadDocument(context, "assets/ui/info/info.rml");
+        g_alert_document = LoadDocument(context, "assets/ui/alerts/alerts.rml");
 
         if (!g_main_document ||
             !g_settings_document ||
             !g_news_document ||
-            !g_info_document)
+            !g_info_document ||
+            !g_alert_document)
         {
             Shutdown();
             return false;
@@ -218,6 +220,13 @@ namespace wfz::ui
             return false;
         }
 
+        if (!alerts_screen::Init(g_alert_document))
+        {
+            wfz::logger::Error("Failed to initialize notification UI");
+            Shutdown();
+            return false;
+        }
+
         const bool navigation_ok =
             BindNavigation(g_main_document, "open-settings") &&
             BindNavigation(g_main_document, "open-news") &&
@@ -235,11 +244,6 @@ namespace wfz::ui
 
         ShowScreen(Screen::Main);
 
-        // TODO: REMOVE BEFORE MERGE
-        wfz::loading_state::SetStatus("Лаунчер готов");
-        wfz::loading_state::SetProgress(1.0f);
-        wfz::loading_state::SetReady(true);
-
         return true;
     }
 
@@ -247,6 +251,7 @@ namespace wfz::ui
     {
         main_screen::Update(delta_time);
         settings_screen::Update(delta_time);
+        alerts_screen::Update();
     }
 
     void Shutdown()
@@ -255,10 +260,12 @@ namespace wfz::ui
         info_screen::Shutdown();
         settings_screen::Shutdown();
         news_screen::Shutdown();
+        alerts_screen::Shutdown();
 
         CloseDocument(g_main_document);
         CloseDocument(g_settings_document);
         CloseDocument(g_news_document);
         CloseDocument(g_info_document);
+        CloseDocument(g_alert_document);
     }
 }

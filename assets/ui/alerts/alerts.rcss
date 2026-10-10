@@ -1,0 +1,76 @@
+.alert-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #080808ed;
+}
+
+.alert-panel {
+    width: 78%;
+    padding: 22px;
+    box-sizing: border-box;
+    border-width: 1px;
+    border-color: #ff9800;
+    border-radius: 4px;
+    background-color: #1a1a1a;
+}
+
+.alert-title {
+    font-size: 20px;
+    color: #ffb245;
+    margin-bottom: 14px;
+}
+
+.alert-message {
+    font-size: 15px;
+    color: #e8e8e8;
+    white-space: pre-wrap;
+    margin-bottom: 12px;
+}
+
+.alert-details {
+    font-size: 12px;
+    color: #aaaaaa;
+    white-space: pre-wrap;
+    max-height: 95px;
+    overflow-y: auto;
+    margin-bottom: 14px;
+}
+
+.alert-actions {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+.alert-button {
+    min-width: 154px;
+    height: 46px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 12px;
+    margin-left: 10px;
+    box-sizing: border-box;
+    font-size: 16px;
+    color: #e8e8e8;
+    background-color: #232323;
+    border-width: 1px;
+    border-color: #494949;
+    border-radius: 3px;
+}
+
+.alert-button:hover {
+    background-color: #2a2a2a;
+    border-color: #ff9800;
+}
+
+.alert-button:active {
+    background-color: #323232;
+}

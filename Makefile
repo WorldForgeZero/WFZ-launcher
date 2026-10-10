@@ -24,6 +24,8 @@ RUNTIME_ASSETS := \
 	$(ASSETS_DIR)/icon/window_icon.tga \
 	$(ASSETS_DIR)/ui/base.rcss \
 	$(ASSETS_DIR)/ui/common.rcss \
+	$(ASSETS_DIR)/ui/alerts/alerts.rcss \
+	$(ASSETS_DIR)/ui/alerts/alerts.rml \
 	$(ASSETS_DIR)/ui/info/info.rcss \
 	$(ASSETS_DIR)/ui/info/info.rml \
 	$(ASSETS_DIR)/ui/main/main.rcss \
